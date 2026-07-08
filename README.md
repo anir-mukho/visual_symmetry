@@ -8,12 +8,12 @@ Claude AI and then humanly verified. It is under development and will be continu
 The objective is to cover the following topics:
 
 #### Symmetries:
-1. *[Triangle and rectangle](small-groups.html)
-2. Tetrahedron 
-3. Cube
-4. Octahedron
-5. Cyclic group
-6. Permutations
+1. [Triangle and rectangle](small-groups.html)
+2. [Tetrahedron](tetrahedral-symmetries-corrected.html) 
+3. [Cube](cube-symmetries.html)
+4. [Octahedron](octahedral-symmetries.html)
+5. [Cyclic group](cyclic-groups.html)
+6. [Permutations](s4-permutations.html)
 7. Linear groups
 8. Group Actions and Conjugacy Classes 
 
