@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Symmetries of the Cube — the rotation group ≅ S₄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef1f4;
+    --paper-2:#f7f9fb;
+    --ink:#151a21;
+    --ink-soft:#4b5563;
+    --line:#c9d2dc;
+    --accent:#3a44b8;
+    --accent-soft:#e7e9fb;
+    /* diagonal colours — vivid + distinct */
+    --d1:#e4483b;
+    --d2:#2f6ef0;
+    --d3:#12a58c;
+    --d4:#f2a70c;
+    /* conjugacy-class hues */
+    --c-id:#6b7280;
+    --c-f4:#d9772b;
+    --c-f2:#8b4fd6;
+    --c-v3:#0f9d8f;
+    --c-e2:#d64578;
+    --shadow:0 1px 2px rgba(21,26,33,.06),0 8px 30px rgba(21,26,33,.08);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:
+      linear-gradient(var(--line) 1px,transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/28px 28px,
+      var(--paper);
+    background-blend-mode:soft-light,soft-light,normal;
+    color:var(--ink);
+    font-family:Inter,system-ui,sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  /* ---------- header ---------- */
+  header{padding:54px 0 8px}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 14px;font-weight:500;
+  }
+  h1{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    font-size:clamp(30px,5vw,52px);line-height:1.04;letter-spacing:-.02em;margin:0 0 16px;
+  }
+  h1 .eq{color:var(--accent);white-space:nowrap}
+  .lede{font-size:clamp(16px,2vw,19px);color:var(--ink-soft);max-width:60ch;margin:0}
+
+  /* ---------- the stage ---------- */
+  .stage{
+    display:grid;grid-template-columns:1.55fr 1fr;gap:18px;
+    margin:32px 0 12px;align-items:stretch;
+  }
+  .panel{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);
+  }
+  #view{position:relative;min-height:440px;overflow:hidden}
+  #canvas-holder{position:absolute;inset:0}
+  #view canvas{display:block}
+  .view-tag{
+    position:absolute;left:14px;top:12px;z-index:2;
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-soft);
+    background:rgba(247,249,251,.82);border:1px solid var(--line);
+    padding:4px 9px;border-radius:7px;backdrop-filter:blur(4px);
+  }
+  .view-hint{
+    position:absolute;right:14px;bottom:12px;z-index:2;
+    font-size:11px;color:var(--ink-soft);background:rgba(247,249,251,.82);
+    border:1px solid var(--line);padding:3px 8px;border-radius:7px;
+  }
+
+  /* ---------- readout ---------- */
+  .readout{padding:20px 20px 18px;display:flex;flex-direction:column;gap:16px}
+  .ro-h{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);margin:0}
+  .ro-name{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:21px;line-height:1.2;margin:2px 0 0}
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+    font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;
+    padding:4px 10px;border-radius:999px;color:#fff;
+  }
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.85)}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fact{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .fact .k{font-size:11px;color:var(--ink-soft);letter-spacing:.04em}
+  .fact .v{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:20px;margin-top:2px}
+  .fact .v.perm{font-size:17px;letter-spacing:.02em}
+
+  .sig{border-top:1px dashed var(--line);padding-top:14px}
+  .sig-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+  .sig-h small{color:var(--ink-soft);font-size:12px}
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .slot{border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--paper)}
+  .slot .axis{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-soft)}
+  .slot .chip{width:26px;height:26px;border-radius:7px;margin:6px auto 3px;border:2px solid rgba(0,0,0,.12);transition:background .3s}
+  .slot .who{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700}
+
+  /* ---------- controls ---------- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 10px;align-items:center}
+  .btn{
+    font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:var(--ink);
+    background:var(--paper-2);border:1px solid var(--line);border-radius:9px;
+    padding:8px 13px;cursor:pointer;transition:transform .06s,box-shadow .12s,background .12s;
+  }
+  .btn:hover{background:#fff;box-shadow:var(--shadow)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#2f39a6}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);cursor:pointer;user-select:none;margin-left:2px}
+  .toggle input{accent-color:var(--accent);width:15px;height:15px}
+  .spacer{flex:1 1 auto}
+
+  .classes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:8px}
+  .cls{background:var(--paper-2);border:1px solid var(--line);border-radius:13px;padding:14px;box-shadow:var(--shadow)}
+  .cls-top{display:flex;align-items:center;gap:9px;margin-bottom:3px}
+  .cls-swatch{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+  .cls-name{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:15px}
+  .cls-sub{font-size:12px;color:var(--ink-soft);margin:0 0 11px}
+  .cls-sub b{color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700}
+  .rot-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .rot{
+    font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;
+    border:1px solid var(--line);background:var(--paper);border-radius:7px;
+    padding:6px 8px;cursor:pointer;color:var(--ink);transition:background .1s,border-color .1s,transform .06s;
+  }
+  .rot:hover{background:#fff;border-color:currentColor}
+  .rot:active{transform:translateY(1px)}
+
+  /* ---------- prose sections ---------- */
+  section.prose{padding:44px 0 8px}
+  .prose h2{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:clamp(22px,3vw,30px);letter-spacing:-.01em;margin:0 0 6px}
+  .prose h2 .n{font-family:"JetBrains Mono",monospace;color:var(--accent);font-size:.6em;vertical-align:middle;margin-right:12px;font-weight:500}
+  .prose p{max-width:66ch;color:var(--ink-soft)}
+  .prose p b, .prose li b{color:var(--ink)}
+  .prose .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:6px}
+  .count-list{list-style:none;padding:0;margin:6px 0 0}
+  .count-list li{display:flex;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);align-items:baseline}
+  .count-list .tally{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--ink);min-width:2.4ch;text-align:right}
+  .count-list .plus{color:var(--ink-soft)}
+  .count-total{display:flex;gap:12px;padding-top:12px;font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:19px}
+  .count-total .tally{font-family:"JetBrains Mono",monospace;color:var(--accent);min-width:2.4ch;text-align:right}
+
+  table.ctab{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+  table.ctab th,table.ctab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  table.ctab th{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  table.ctab td.mono{font-family:"JetBrains Mono",monospace}
+  table.ctab tr td:first-child{white-space:nowrap}
+  .cdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  .callout{background:var(--accent-soft);border:1px solid #cdd2f5;border-left:3px solid var(--accent);
+    border-radius:10px;padding:16px 18px;margin-top:18px}
+  .callout p{color:var(--ink);margin:0;max-width:70ch}
+  .callout p+p{margin-top:8px}
+  footer{padding:40px 0 60px;color:var(--ink-soft);font-size:13px;border-top:1px solid var(--line);margin-top:40px}
+  code{font-family:"JetBrains Mono",monospace;background:var(--paper-2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.9em}
+
+  @media (max-width:860px){
+    .stage{grid-template-columns:1fr}
+    #view{min-height:360px}
+    .prose .cols{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .btn,.rot{transition:none}
+  }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Group theory · interactive example</p>
+    <h1>Symmetries of the cube<br>are the group <span class="eq">S₄</span></h1>
+    <p class="lede">A cube can be rotated in <b>24</b> different ways that leave it looking unchanged. Every one of them simply shuffles the cube's <b>four long diagonals</b> — and every shuffle of four things happens exactly once. Turn the cube and watch the diagonals get permuted.</p>
+  </header>
+
+  <!-- ============ interactive stage ============ -->
+  <div class="stage">
+    <div class="panel" id="view">
+      <span class="view-tag">rotation group O · order 24</span>
+      <div id="canvas-holder"></div>
+      <span class="view-hint">drag to orbit · scroll to zoom</span>
+    </div>
+
+    <div class="panel readout">
+      <div>
+        <p class="ro-h">Current element</p>
+        <p class="ro-name" id="ro-name">identity</p>
+      </div>
+      <span class="badge" id="ro-badge"><span class="dot"></span><span id="ro-badge-t">identity</span></span>
+      <div class="facts">
+        <div class="fact"><div class="k">order of element</div><div class="v" id="ro-order">1</div></div>
+        <div class="fact"><div class="k">as a permutation in S₄</div><div class="v perm" id="ro-perm">e</div></div>
+      </div>
+
+      <div class="sig">
+        <div class="sig-h">
+          <p class="ro-h" style="margin:0">Where each diagonal points now</p>
+        </div>
+        <div class="slots" id="slots"></div>
+        <small style="display:block;color:var(--ink-soft);font-size:11.5px;margin-top:9px">
+          Each slot is a fixed diagonal <i>direction</i> in space; the colour shows which diagonal currently lies along it.
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" id="btn-reset">Reset to identity</button>
+    <button class="btn" id="btn-random">Random rotation</button>
+    <span class="spacer"></span>
+    <label class="toggle"><input type="checkbox" id="tg-diag" checked> diagonals</label>
+    <label class="toggle"><input type="checkbox" id="tg-labels" checked> vertex labels</label>
+    <label class="toggle"><input type="checkbox" id="tg-axis" checked> show rotation axis</label>
+  </div>
+
+  <div class="classes" id="classes"></div>
+
+  <!-- ============ prose ============ -->
+  <section class="prose">
+    <h2><span class="n">01</span>Why exactly 24?</h2>
+    <div class="cols">
+      <div>
+        <p>Here is a hands-on way to count without listing anything. Pick up the cube. You can put <b>any of its 6 faces</b> down on the table — and once a face is down, you can still spin the cube <b>4 ways</b> about the vertical axis. Nothing else is free.</p>
+        <p>So there are <b>6 × 4 = 24</b> resting positions, and each one corresponds to exactly one rotation that carries the original cube onto itself. That's the whole group.</p>
+        <p>The 24 rotations sort themselves into four natural families depending on <i>where the axis points</i>: through faces, through corners, or through edges.</p>
+      </div>
+      <div>
+        <ul class="count-list">
+          <li><span class="tally">1</span><span><b>identity</b> — do nothing</span></li>
+          <li><span class="tally">6</span><span><b>face axes, ¼ turn</b> — 3 axes × (90°, 270°)</span></li>
+          <li><span class="tally">3</span><span><b>face axes, ½ turn</b> — 3 axes × 180°</span></li>
+          <li><span class="tally">8</span><span><b>corner axes, ⅓ turn</b> — 4 diagonals × (120°, 240°)</span></li>
+          <li><span class="tally">6</span><span><b>edge axes, ½ turn</b> — 6 axes × 180°</span></li>
+        </ul>
+        <div class="count-total"><span class="tally">24</span><span>rotations in total</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2><span class="n">02</span>The four diagonals — meeting S₄</h2>
+    <p>A cube has four <b>space diagonals</b>, each joining a corner to the one straight across. Colour them <span style="color:var(--d1);font-weight:600">red</span>, <span style="color:var(--d2);font-weight:600">blue</span>, <span style="color:var(--d3);font-weight:600">green</span>, <span style="color:var(--d4);font-weight:600">amber</span>. Any rotation of the cube sends diagonals to diagonals — so it produces a <b>rearrangement of these four colours</b>, i.e. an element of the symmetric group <code>S₄</code>.</p>
+    <p>Rotate the cube above and read the panel: the bottom slots tell you the permutation, written in <b>cycle notation</b>. Two facts make this the whole story:</p>
+    <p style="margin-top:4px">— No non-trivial rotation leaves all four diagonals in place, so <b>different rotations give different permutations</b>.<br>— There are <code>4! = 24</code> permutations of four things, and we have <code>24</code> rotations. The counts match.</p>
+    <div class="callout">
+      <p><b>Conclusion.</b> The map "rotation ↦ its permutation of the four diagonals" is a one-to-one match between all 24 rotations of the cube and all 24 elements of <code>S₄</code>. The rotation group of the cube <b>is</b> <code>S₄</code>, just wearing a geometric costume.</p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2><span class="n">03</span>The five conjugacy classes</h2>
+    <p>Rotations that "look the same up to a change of viewpoint" form a <b>conjugacy class</b>. Geometrically, two rotations are conjugate when they turn by the same angle about the same <i>kind</i> of axis. The cube's 24 rotations fall into exactly five classes — and these line up perfectly with the five cycle-shapes in <code>S₄</code>.</p>
+    <table class="ctab">
+      <thead><tr><th>geometric move</th><th>count</th><th>order</th><th>shape in S₄</th><th>example</th></tr></thead>
+      <tbody>
+        <tr><td><span class="cdot" style="background:var(--c-id)"></span>identity</td><td class="mono">1</td><td class="mono">1</td><td>fixes all four</td><td class="mono">e</td></tr>
+        <tr><td><span class="cdot" style="background:var(--c-e2)"></span>180° about an edge axis</td><td class="mono">6</td><td class="mono">2</td><td>one swap</td><td class="mono">(1 2)</td></tr>
+        <tr><td><span class="cdot" style="background:var(--c-f2)"></span>180° about a face axis</td><td class="mono">3</td><td class="mono">2</td><td>two swaps</td><td class="mono">(1 2)(3 4)</td></tr>
+        <tr><td><span class="cdot" style="background:var(--c-v3)"></span>120° / 240° about a corner axis</td><td class="mono">8</td><td class="mono">3</td><td>3-cycle</td><td class="mono">(1 2 3)</td></tr>
+        <tr><td><span class="cdot" style="background:var(--c-f4)"></span>90° / 270° about a face axis</td><td class="mono">6</td><td class="mono">4</td><td>4-cycle</td><td class="mono">(1 2 3 4)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px;font-size:13.5px">Check: <code>1 + 6 + 3 + 8 + 6 = 24</code>. Try applying moves from one row and watch the cycle-shape in the readout stay the same type — that is conjugacy, made visible.</p>
+  </section>
+
+  <section class="prose">
+    <h2><span class="n">04</span>What about reflections?</h2>
+    <p>If you also allow <b>mirror reflections</b>, the cube has <b>48</b> symmetries in total — this larger group is written <code>O_h</code> and it splits neatly as <code>S₄ × Z₂</code>, where the extra <code>Z₂</code> is the point-inversion that turns the cube inside-out through its centre. Chemists meet <code>O_h</code> as the symmetry of an octahedral molecule. The 24 <i>rotations</i> we explored above are exactly the "hands-on" half you can reach by physically turning the object.</p>
+  </section>
+
+  <footer>
+    <div class="wrap" style="padding:0">Introduction to Group Theory · interactive module. Built with three.js. Drag the cube to orbit, click any rotation to apply it on top of the current position.</div>
+  </footer>
+
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- diagonal + class colour tables ---------- */
+const DCOL = [0xe4483b, 0x2f6ef0, 0x12a58c, 0xf2a70c];      // 1..4
+const DCSS = ['#e4483b','#2f6ef0','#12a58c','#f2a70c'];
+const CLASSES = {
+  identity:{name:'identity',       sub:'1 element · fixes all four', css:'#6b7280'},
+  face4:   {name:'¼-turn (face)',  sub:'6 elements · 4-cycles',     css:'#d9772b'},
+  face2:   {name:'½-turn (face)',  sub:'3 elements · (ab)(cd)',     css:'#8b4fd6'},
+  vertex3: {name:'⅓-turn (corner)',sub:'8 elements · 3-cycles',     css:'#0f9d8f'},
+  edge2:   {name:'½-turn (edge)',  sub:'6 elements · transpositions',css:'#d64578'},
+};
+
+/* ---------- the 24 rotations, as axis + angle in a FIXED world frame ---------- */
+const X=new THREE.Vector3(1,0,0), Y=new THREE.Vector3(0,1,0), Z=new THREE.Vector3(0,0,1);
+const els = [];
+els.push({name:'identity', short:'e', axis:Y.clone(), angle:0, cls:'identity'});
+[['x',X],['y',Y],['z',Z]].forEach(([n,ax])=>{
+  els.push({name:`90° about the ${n}-axis`,  short:`90° ${n}`,  axis:ax.clone(), angle:Math.PI/2,     cls:'face4'});
+  els.push({name:`180° about the ${n}-axis`, short:`180° ${n}`, axis:ax.clone(), angle:Math.PI,       cls:'face2'});
+  els.push({name:`270° about the ${n}-axis`, short:`270° ${n}`, axis:ax.clone(), angle:3*Math.PI/2,   cls:'face4'});
+});
+const DIAGS=[[1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1]];
+DIAGS.forEach((d,i)=>{
+  const ax=new THREE.Vector3(...d).normalize();
+  els.push({name:`120° about corner-diagonal ${i+1}`, short:`120° d${i+1}`, axis:ax.clone(), angle:2*Math.PI/3, cls:'vertex3'});
+  els.push({name:`240° about corner-diagonal ${i+1}`, short:`240° d${i+1}`, axis:ax.clone(), angle:4*Math.PI/3, cls:'vertex3'});
+});
+const EDGES=[[1,1,0],[1,-1,0],[1,0,1],[1,0,-1],[0,1,1],[0,1,-1]];
+EDGES.forEach((e,i)=>{
+  const ax=new THREE.Vector3(...e).normalize();
+  els.push({name:`180° about edge-axis ${i+1}`, short:`180° e${i+1}`, axis:ax.clone(), angle:Math.PI, cls:'edge2'});
+});
+const quatOf = el => new THREE.Quaternion().setFromAxisAngle(el.axis, el.angle);
+const canon  = els.map(el => ({el, q:quatOf(el)}));
+
+/* ---------- diagonal directions (body frame) for the S4 read-off ---------- */
+const DDIR = DIAGS.map(d => new THREE.Vector3(...d).normalize());
+function sigmaOf(q){
+  const perm=[0,0,0,0];
+  for(let i=0;i<4;i++){
+    const w=DDIR[i].clone().applyQuaternion(q);
+    let best=0,bd=-1;
+    for(let j=0;j<4;j++){ const dd=Math.abs(w.dot(DDIR[j])); if(dd>bd){bd=dd;best=j;} }
+    perm[i]=best;
+  }
+  return perm;
+}
+function cycleNotation(perm){
+  const n=perm.length, seen=Array(n).fill(false), out=[];
+  for(let i=0;i<n;i++){
+    if(seen[i]) continue;
+    if(perm[i]===i){ seen[i]=true; continue; }
+    const c=[]; let j=i;
+    while(!seen[j]){ seen[j]=true; c.push(j+1); j=perm[j]; }
+    out.push('('+c.join(' ')+')');
+  }
+  return out.length ? out.join('') : 'e';
+}
+function orderOf(perm){
+  const n=perm.length, seen=Array(n).fill(false); let ord=1;
+  const gcd=(a,b)=>b?gcd(b,a%b):a, lcm=(a,b)=>a/gcd(a,b)*b;
+  for(let i=0;i<n;i++){ if(seen[i])continue; let len=0,j=i; while(!seen[j]){seen[j]=true;len++;j=perm[j];} ord=lcm(ord,len); }
+  return ord;
+}
+
+/* ================= three.js scene ================= */
+const holder = document.getElementById('canvas-holder');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+camera.position.set(3.4, 2.5, 4.1);
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+holder.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=.09;
+controls.minDistance=3.2; controls.maxDistance=9; controls.enablePan=false;
+
+scene.add(new THREE.AmbientLight(0xffffff,0.72));
+const key=new THREE.DirectionalLight(0xffffff,0.85); key.position.set(4,6,5); scene.add(key);
+const fill=new THREE.DirectionalLight(0xffffff,0.3); fill.position.set(-5,-2,-4); scene.add(fill);
+
+/* the cube group (everything that rotates lives here) */
+const cube = new THREE.Group();
+scene.add(cube);
+const S=1.25; // half edge
+
+// faint solid body
+const body = new THREE.Mesh(
+  new THREE.BoxGeometry(2*S,2*S,2*S),
+  new THREE.MeshStandardMaterial({color:0x8a93a3,transparent:true,opacity:0.10,roughness:.9,depthWrite:false})
+);
+cube.add(body);
+
+// crisp edges
+const edges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(2*S,2*S,2*S)),
+  new THREE.LineBasicMaterial({color:0x1b2028})
+);
+cube.add(edges);
+
+// helper: text sprite
+function labelSprite(text, color='#151a21', bg='#f7f9fb'){
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d');
+  g.fillStyle=bg; g.beginPath(); g.arc(64,64,54,0,7); g.fill();
+  g.lineWidth=6; g.strokeStyle=color; g.stroke();
+  g.fillStyle=color; g.font='bold 74px "JetBrains Mono",monospace';
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,64,70);
+  const tex=new THREE.CanvasTexture(c); tex.anisotropy=4;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:true}));
+  sp.scale.set(0.42,0.42,0.42);
+  return sp;
+}
+
+// 8 vertices with labels
+const vertexLabels=[];
+let vi=0;
+for(const sx of [1,-1]) for(const sy of [1,-1]) for(const sz of [1,-1]){
+  vi++;
+  const p=new THREE.Vector3(sx*S,sy*S,sz*S);
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.075,20,20),
+    new THREE.MeshStandardMaterial({color:0x151a21,roughness:.5}));
+  dot.position.copy(p); cube.add(dot);
+  const lab=labelSprite(String(vi));
+  lab.position.copy(p).multiplyScalar(1.16);
+  cube.add(lab); vertexLabels.push(lab);
+}
+
+// 6 face-centre colour markers (to track faces too)
+const FACECOL=[0xff9f45,0x845ec2,0x00c2a8,0xff5e78,0x4d8bff,0xffd23f];
+const faceN=[[S,0,0],[-S,0,0],[0,S,0],[0,-S,0],[0,0,S],[0,0,-S]];
+faceN.forEach((p,i)=>{
+  const m=new THREE.Mesh(new THREE.SphereGeometry(0.11,20,20),
+    new THREE.MeshStandardMaterial({color:FACECOL[i],roughness:.4,metalness:.05}));
+  m.position.set(...p); cube.add(m);
+});
+
+// 4 space diagonals (coloured cylinders through opposite corners)
+const diagGroup=new THREE.Group(); cube.add(diagGroup);
+DIAGS.forEach((d,i)=>{
+  const a=new THREE.Vector3(d[0]*S,d[1]*S,d[2]*S);
+  const b=a.clone().multiplyScalar(-1);
+  const mid=a.clone().add(b).multiplyScalar(.5);
+  const len=a.distanceTo(b);
+  const cyl=new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045,0.045,len,20),
+    new THREE.MeshStandardMaterial({color:DCOL[i],roughness:.35,metalness:.1,
+      emissive:DCOL[i],emissiveIntensity:.14})
+  );
+  cyl.position.copy(mid);
+  cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), b.clone().sub(a).normalize());
+  diagGroup.add(cyl);
+});
+
+// rotation-axis indicator (world frame, NOT a child of cube)
+const axisMat=new THREE.LineBasicMaterial({color:0x3a44b8});
+const axisGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-1,0),new THREE.Vector3(0,1,0)]);
+const axisLine=new THREE.Line(axisGeo, axisMat);
+axisLine.visible=false; scene.add(axisLine);
+function showAxis(el){
+  if(!document.getElementById('tg-axis').checked || el.angle===0){ axisLine.visible=false; return; }
+  const dir=el.axis.clone().normalize().multiplyScalar(2.55);
+  axisLine.geometry.setFromPoints([dir.clone().multiplyScalar(-1), dir]);
+  axisLine.material.color.set(CLASSES[el.cls].css);
+  axisLine.visible=true;
+}
+
+/* ================= rotation logic ================= */
+let current = new THREE.Quaternion();       // settled orientation
+let anim = null;                            // {start,target,t,dur,el}
+const easeInOut = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+
+function applyElement(el){
+  const target = quatOf(el).clone().multiply(current); // world (extrinsic) compose
+  showAxis(el);
+  if(REDUCED){ current.copy(target); snap(); cube.quaternion.copy(current); updateReadout(); axisLine.visible=false; return; }
+  anim = {start:current.clone(), target, t:0, dur:0.62, el};
+}
+function snap(){ // clamp settled orientation onto the nearest exact symmetry to kill drift
+  let best=canon[0].q, bd=-2;
+  for(const c of canon){ const d=Math.abs(c.q.dot(current)); if(d>bd){bd=d;best=c.q;} }
+  current.copy(best);
+}
+
+const clock=new THREE.Clock();
+function tick(){
+  requestAnimationFrame(tick);
+  const dt=clock.getDelta();
+  if(anim){
+    anim.t += dt/anim.dur;
+    if(anim.t>=1){
+      current.copy(anim.target); snap(); cube.quaternion.copy(current);
+      anim=null; axisLine.visible=false; updateReadout();
+    } else {
+      cube.quaternion.slerpQuaternions(anim.start, anim.target, easeInOut(anim.t));
+    }
+  }
+  controls.update();
+  renderer.render(scene,camera);
+}
+
+function resize(){
+  const w=holder.clientWidth, h=holder.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+/* ================= UI wiring ================= */
+// build class panels + buttons
+const classesEl=document.getElementById('classes');
+const order=['identity','face4','face2','vertex3','edge2'];
+for(const key of order){
+  const meta=CLASSES[key];
+  const card=document.createElement('div'); card.className='cls';
+  card.innerHTML=`<div class="cls-top"><span class="cls-swatch" style="background:${meta.css}"></span>
+     <span class="cls-name">${meta.name}</span></div>
+     <p class="cls-sub">${meta.sub}</p><div class="rot-grid"></div>`;
+  const grid=card.querySelector('.rot-grid');
+  els.filter(e=>e.cls===key).forEach(el=>{
+    const b=document.createElement('button');
+    b.className='rot'; b.textContent=el.short; b.title=el.name;
+    b.style.color=meta.css;
+    b.addEventListener('click',()=>applyElement(el));
+    grid.appendChild(b);
+  });
+  classesEl.appendChild(card);
+}
+
+// readout slots
+const slotsEl=document.getElementById('slots');
+const AXNAMES=['(1,1,1)','(1,1,-1)','(1,-1,1)','(1,-1,-1)'];
+const slotChips=[], slotWho=[];
+for(let j=0;j<4;j++){
+  const s=document.createElement('div'); s.className='slot';
+  s.innerHTML=`<div class="axis">${AXNAMES[j]}</div><div class="chip"></div><div class="who">d?</div>`;
+  slotsEl.appendChild(s);
+  slotChips.push(s.querySelector('.chip'));
+  slotWho.push(s.querySelector('.who'));
+}
+
+const roName=document.getElementById('ro-name');
+const roOrder=document.getElementById('ro-order');
+const roPerm=document.getElementById('ro-perm');
+const roBadge=document.getElementById('ro-badge');
+const roBadgeT=document.getElementById('ro-badge-t');
+
+function updateReadout(){
+  const perm=sigmaOf(current);
+  // nearest canonical for a precise name
+  let best=canon[0], bd=-2;
+  for(const c of canon){ const d=Math.abs(c.q.dot(current)); if(d>bd){bd=d;best=c;} }
+  const meta=CLASSES[best.el.cls];
+  roName.textContent=best.el.name;
+  roOrder.textContent=orderOf(perm);
+  roPerm.textContent=cycleNotation(perm);
+  roBadgeT.textContent=meta.name;
+  roBadge.style.background=meta.css;
+  // slots: which diagonal colour lies along fixed axis j  →  i with perm[i]=j
+  const inv=[0,0,0,0]; for(let i=0;i<4;i++) inv[perm[i]]=i;
+  for(let j=0;j<4;j++){
+    const i=inv[j];
+    slotChips[j].style.background=DCSS[i];
+    slotWho[j].textContent='d'+(i+1);
+    slotWho[j].style.color=DCSS[i];
+  }
+}
+
+document.getElementById('btn-reset').addEventListener('click',()=>applyElement(els[0]));
+document.getElementById('btn-random').addEventListener('click',()=>{
+  applyElement(els[1+Math.floor(Math.random()*(els.length-1))]);
+});
+document.getElementById('tg-diag').addEventListener('change',e=>diagGroup.visible=e.target.checked);
+document.getElementById('tg-labels').addEventListener('change',e=>vertexLabels.forEach(l=>l.visible=e.target.checked));
+document.getElementById('tg-axis').addEventListener('change',e=>{ if(!e.target.checked) axisLine.visible=false; });
+
+/* ---------- go ---------- */
+resize(); updateReadout(); tick();
+</script>
+</body>
+</html>

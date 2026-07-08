@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Two Small Groups — the Klein Four-Group and S₃</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.btn,.chip,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code,.perm,.cell{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:19px;letter-spacing:.01em;font-weight:600;margin:2.2em 0 .4em;text-transform:uppercase}
+  p{margin:0 0 1.05em}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid rgba(55,72,159,.3)}
+  a:hover{border-color:var(--link)}
+  .eyebrow{font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 1.4em}
+  .lead{font-size:clamp(20px,2.4vw,23px);line-height:1.5}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,116px) 0 clamp(36px,6vw,64px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,7.4vw,68px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .4em;max-width:17ch}
+  h1 .a{color:var(--v4)} h1 .b{color:var(--v1)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  /* interactive module (shared with the tetrahedron page) */
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:8px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 330px}
+  @media (max-width:760px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 30%,#1b1f2b 0%,var(--viewport) 70%);min-height:420px}
+  @media (max-width:760px){ .stage{min-height:330px} }
+  .holder{position:absolute;inset:0}
+  .holder canvas{display:block;width:100%;height:100%}
+  .stage .hint{position:absolute;left:16px;bottom:14px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.03em;pointer-events:none}
+  .stage .fallback{position:absolute;inset:0;display:none;place-items:center;text-align:center;color:var(--viewport-soft);font-family:"Space Grotesk",sans-serif;padding:24px;font-size:15px}
+
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:20px 20px 22px;color:#e8eaf0;display:flex;flex-direction:column;gap:14px}
+  @media (max-width:760px){ .panel{border-left:none;border-top:1px solid var(--viewport-line)} }
+
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:14px 15px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .perm{font-size:26px;font-weight:600;letter-spacing:.02em;margin:6px 0 3px;color:#fff;min-height:1.1em;font-family:"JetBrains Mono",monospace}
+  .readout .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:#aeb4c4;line-height:1.5}
+  .readout .meta b{color:#fff;font-weight:600}
+  .cls-dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:5px}
+
+  .grp-title{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -4px;display:flex;align-items:center;gap:7px}
+  .grp-title .cls-dot{margin:0}
+  .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .btn{appearance:none;border:1px solid var(--viewport-line);background:#1b1f2b;color:#e8eaf0;border-radius:9px;padding:8px 8px 7px;cursor:pointer;text-align:center;transition:background .13s,border-color .13s,transform .08s;display:flex;flex-direction:column;gap:2px;align-items:center}
+  .btn:hover{background:#232838;border-color:#414a5e}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--v4);outline-offset:2px}
+  .btn .bt{font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;line-height:1.15}
+  .btn .bc{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#9aa0b2}
+  .btn.wide{grid-column:1 / -1}
+  .btn.identity{background:#181b24}
+  .btn .swatch{width:100%;height:3px;border-radius:2px;margin-top:3px;opacity:.85}
+
+  .panel-actions{display:flex;gap:8px;margin-top:2px}
+  .ctrl{flex:1;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl:focus-visible{outline:2px solid var(--v4);outline-offset:2px}
+  .ctrl.on{background:#242a3a;color:#fff;border-color:#414a5e}
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+
+  .facts{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.4em 0}
+  .facts.c3{grid-template-columns:repeat(3,1fr)} .facts.c4{grid-template-columns:repeat(4,1fr)}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:600;line-height:1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts.c3,.facts.c4{grid-template-columns:1fr 1fr} }
+
+  .cayley-wrap{overflow-x:auto;margin:6px 0 2px;padding-bottom:4px}
+  table.cayley{border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:12px;margin:0 auto}
+  table.cayley th,table.cayley td{min-width:34px;height:34px;text-align:center;padding:0 4px;border:1px solid var(--line)}
+  table.cayley th{background:var(--paper-2);color:var(--ink-soft);font-weight:500}
+  table.cayley td .cell{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#fff;font-size:12px;border-radius:3px}
+  table.cayley td.hl{outline:2px solid var(--ink);outline-offset:-2px;z-index:2;position:relative}
+  .cayley-note{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px;min-height:1.4em}
+  .cayley-note b{color:var(--ink);font-weight:600}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:14px 0 2px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 2</b> · Two Small Groups</div>
+    <h1>The smallest group that isn't <span class="a">cyclic</span>, and the smallest that isn't <span class="b">commutative</span>.</h1>
+    <p class="sub">Below the tetrahedron's twelve rotations live two little groups worth knowing by heart. One has four elements and breaks the habit that you can reach every element by repeating a single move. The other has six and breaks the habit that order doesn't matter. Meet them by turning a mattress and flipping a triangle.</p>
+  </div>
+</header>
+
+<!-- ============================ SECTION 1: V4 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">SECTION 1 — THE KLEIN FOUR-GROUP · V₄</span>
+    <h2>Four ways to turn a mattress</h2>
+    <p>Here is a piece of practical group theory you can use tonight. To wear a mattress evenly you periodically turn it, and there are exactly four resting positions you can put it in without standing it on its edge: leave it, spin it a half-turn so head becomes foot, flip it sideways so the other face is up, or tumble it end-over-end. These are the <em class="term">rotations of a rectangular brick</em> — a box whose three side-lengths all differ — and they form a group of four elements called the <em class="term">Klein four-group</em>, written V₄.</p>
+    <p>The brick below is marked so you can tell its orientation: one gold corner, and a warm top face with a cool underside. Drag to look around it, then apply the three turns. Every button is a <em class="term">half-turn</em> (180°) about one of the box's three axes, and something surprising happens: whatever you press, and however often, you only ever reach one of four positions, and pressing the same button twice always returns home.</p>
+
+    <div class="module" id="mod-v4">
+      <div class="stage">
+        <div class="holder" id="holder-v4"></div>
+        <div class="hint">drag to orbit · scroll to zoom</div>
+        <div class="fallback" id="fallback-v4">The 3-D view needs to load a graphics library from the web.<br>Check your connection, or open this file while online.</div>
+      </div>
+      <div class="panel" id="panel-v4">
+        <div class="readout">
+          <div class="lbl">Net turn from start</div>
+          <div class="perm" id="v4-name">rest</div>
+          <div class="meta" id="v4-meta"></div>
+        </div>
+        <div class="grp-title"><span class="cls-dot" style="background:#c7ccda"></span>The four turns</div>
+        <div class="btn-grid" id="v4-btns"></div>
+        <div class="panel-actions">
+          <button class="ctrl" id="v4-reset">Reset</button>
+          <button class="ctrl on" id="v4-axis">Axis on hover</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Each turn is its own undo: press it twice and the mattress is back where it started. That is what "order 2" means — and here every non-resting turn has order 2.</p>
+
+    <h3>Why this group is special</h3>
+    <p>Two facts jump out of the table below. First, V₄ is <em class="term">abelian</em>: the grid is perfectly symmetric across its diagonal, so it never matters which of two turns you do first. Second, and more unusual, <em>every</em> element is its own inverse — the whole diagonal is the identity. That second fact is why V₄ is <em class="term">not cyclic</em>: a cyclic group of order four would contain an element of order four, a single move you repeat to cycle through all four positions. No mattress turn does that. You genuinely need two independent moves, and that independence is the heart of the group.</p>
+    <div class="facts c4">
+      <div><div class="n">4</div><div class="k">elements</div></div>
+      <div><div class="n">3</div><div class="k">of order two</div></div>
+      <div><div class="n">0</div><div class="k">of order four</div></div>
+      <div><div class="n">abelian</div><div class="k">order never matters</div></div>
+    </div>
+    <div class="cayley-wrap"><table class="cayley" id="cayley-v4"></table></div>
+    <div class="cayley-note" id="note-v4">Hover a cell to read the combination.</div>
+    <p style="margin-top:1.6em">The same four-element pattern wears many costumes. It is the two independent light switches in a room, each on or off, where "flip switch A" and "flip switch B" are your two moves. It is the numbers <span class="mono">{1, 3, 5, 7}</span> under multiplication modulo 8, where every element squares to 1. And it is the symmetries of any plain rectangle. All of these are <em class="term">the same group</em> in different clothing — the first hint of what it means for two groups to be <em class="term">isomorphic</em>.</p>
+  </div>
+</section>
+
+<!-- ============================ SECTION 2: S3 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">SECTION 2 — THE SYMMETRIC GROUP · S₃</span>
+    <h2>Flipping a triangle, where order starts to matter</h2>
+    <p>Cut out an equilateral triangle and label its corners <span style="color:var(--v1);font-weight:600">1</span>, <span style="color:var(--v2);font-weight:600">2</span>, <span style="color:var(--v3);font-weight:600">3</span>. How many ways can you set it back down on its own outline? You can <em class="term">rotate</em> it by a third or two-thirds of a turn, and you can <em class="term">flip</em> it over about any of the three lines joining a corner to the opposite edge. That is three rotations and three flips: six symmetries in all.</p>
+    <p>Because each symmetry just rearranges three labelled corners, and there are exactly <span class="mono">3! = 6</span> ways to rearrange three things, these six symmetries realise <em>every possible</em> permutation of the corners. This group is therefore the full <em class="term">symmetric group</em> S₃. Apply the moves below — a flip physically turns the triangle face-down, which is exactly what a mirror reflection looks like from above — and watch the corner labels take every arrangement.</p>
+
+    <div class="module" id="mod-s3">
+      <div class="stage">
+        <div class="holder" id="holder-s3"></div>
+        <div class="hint">drag to orbit · scroll to zoom</div>
+        <div class="fallback" id="fallback-s3">The 3-D view needs to load a graphics library from the web.<br>Check your connection, or open this file while online.</div>
+      </div>
+      <div class="panel" id="panel-s3">
+        <div class="readout">
+          <div class="lbl">Current arrangement</div>
+          <div class="perm" id="s3-perm">( )</div>
+          <div class="meta" id="s3-meta"></div>
+        </div>
+        <div class="grp-title"><span class="cls-dot" style="background:var(--v3)"></span>Rotations · turn in place</div>
+        <div class="btn-grid" id="s3-rot"></div>
+        <div class="grp-title"><span class="cls-dot" style="background:var(--v2)"></span>Flips · turn it over</div>
+        <div class="btn-grid" id="s3-flip"></div>
+        <div class="panel-actions">
+          <button class="ctrl" id="s3-reset">Reset</button>
+          <button class="ctrl on" id="s3-axis">Axis on hover</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Each button shows the permutation of the corners it performs. Rotations cycle all three labels; flips fix one corner and swap the other two.</p>
+
+    <h3>Order suddenly matters</h3>
+    <p>Try this: from the start, <em>flip about corner 1, then rotate</em>. Reset, and now <em>rotate, then flip about corner 1</em>. The two sequences leave the triangle in different arrangements. In symbols, a flip and a rotation do not commute — and that makes S₃ the <em class="term">smallest non-abelian group</em> in all of mathematics. You can see it in the table: it is <em>not</em> symmetric across the diagonal.</p>
+    <div class="legend">
+      <span><i style="background:#c7ccda"></i> identity</span>
+      <span><i style="background:var(--v3)"></i> rotation</span>
+      <span><i style="background:var(--v2)"></i> flip</span>
+    </div>
+    <div class="cayley-wrap"><table class="cayley" id="cayley-s3"></table></div>
+    <div class="cayley-note" id="note-s3">Hover a cell to read the product.</div>
+    <p style="margin-top:1.6em">The six elements fall into three <em class="term">conjugacy classes</em> — the identity alone, the two rotations together, and the three flips together — of sizes <span class="mono">1, 2, 3</span>. This same group has two names that matter later in the course. As the symmetries of a triangle it is the <em class="term">dihedral group</em> D₃, the <span class="mono">n = 3</span> member of the family Dₙ we take up next. As permutations of three objects it is S₃, the smallest of the symmetric groups Sₙ — the family whose even half, for four objects, gave us the tetrahedron's A₄.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 2 of Part 1</p>
+    <p>Both visualisers use honest physical turns only: for the flat triangle, turning it over in space is what a mirror reflection looks like from above. The 3-D views use <a href="https://threejs.org">three.js</a>; every permutation and combination is computed live in your browser from the actual motion.</p>
+  </div>
+</footer>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+let THREE, OrbitControls, threeOK = true;
+try {
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+} catch (err) {
+  threeOK = false;
+  document.querySelectorAll('.fallback').forEach(f => f.style.display = 'grid');
+  console.warn('three.js failed to load:', err);
+}
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- shared maths helpers ---------- */
+const key = p => p.join('');
+const compose = (a, b) => a.map(i => b[i]);      // "a then b"
+const invert = p => { const r = []; p.forEach((v, i) => r[v] = i); return r; };
+function cycleNotation(p){
+  const seen = p.map(() => false), cy = [];
+  for (let i = 0; i < p.length; i++){
+    if (seen[i] || p[i] === i){ seen[i] = true; continue; }
+    const c = []; let j = i;
+    while (!seen[j]){ seen[j] = true; c.push(j+1); j = p[j]; }
+    if (c.length > 1) cy.push('(' + c.join(' ') + ')');
+  }
+  return cy.length ? cy.join('') : '( )';
+}
+function orderOf(p){ const id = p.map((_,i)=>i); let c = p.slice(), n = 1; while (key(c) !== key(id) && n < 24){ c = compose(c, p); n++; } return n; }
+
+/* ---------- shared 3-D "spin scene" ---------- */
+function makeLabelSprite(text){
+  const s = 128, cv = document.createElement('canvas'); cv.width = cv.height = s;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.font = '600 74px "Space Grotesk", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, s/2, s/2 + 4);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sp.scale.set(0.5, 0.5, 0.5);
+  return sp;
+}
+
+function createSpinScene(holderId, opts){
+  const holder = document.getElementById(holderId);
+  const w = holder.clientWidth || 600, h = holder.clientHeight || 420;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, w/h, 0.1, 100);
+  camera.position.set(...opts.cameraPos);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  holder.appendChild(renderer.domElement);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+  controls.minDistance = opts.minD; controls.maxDistance = opts.maxD;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.74));
+  const k1 = new THREE.DirectionalLight(0xffffff, 0.8); k1.position.set(5, 6, 4); scene.add(k1);
+  const k2 = new THREE.DirectionalLight(0x9fb0ff, 0.35); k2.position.set(-4, -2, -3); scene.add(k2);
+
+  const obj = new THREE.Group(); scene.add(obj);
+  opts.build(obj);
+
+  const ageom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+  const axisLine = new THREE.Line(ageom, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }));
+  scene.add(axisLine);
+
+  let anim = null, animating = false;
+  function spin(axisVec, angle){
+    if (animating) return false;
+    animating = true;
+    anim = { qStart: obj.quaternion.clone(), axis: axisVec.clone().normalize(), angle, t0: performance.now(), dur: reduceMotion ? 1 : 640 };
+    return true;
+  }
+  function resetHome(){
+    if (animating) return;
+    // shortest way back to identity orientation
+    animating = true;
+    anim = { mode:'slerp', qStart: obj.quaternion.clone(), qEnd: new THREE.Quaternion(), t0: performance.now(), dur: reduceMotion ? 1 : 480 };
+  }
+  function preview(axisVec, color){
+    if (!threeOK) return;
+    if (!axisVec){ axisLine.material.opacity = 0; return; }
+    const a = axisVec.clone().normalize().multiplyScalar(opts.axisLen);
+    axisLine.geometry.setFromPoints([a, a.clone().multiplyScalar(-1)]);
+    axisLine.material.color.set(color); axisLine.material.opacity = 0.85;
+  }
+  function loop(){
+    if (anim){
+      const t = Math.min(1, (performance.now() - anim.t0) / anim.dur);
+      const e = t < 0.5 ? 2*t*t : 1 - (-2*t+2)**2/2;
+      if (anim.mode === 'slerp'){ obj.quaternion.copy(anim.qStart).slerp(anim.qEnd, e); }
+      else { obj.quaternion.copy(anim.qStart); obj.rotateOnWorldAxis(anim.axis, anim.angle * e); }
+      axisLine.material.opacity = 0.85 * (1 - e) * (anim.mode === 'slerp' ? 0 : 1);
+      if (t >= 1){
+        if (anim.mode === 'slerp') obj.quaternion.copy(anim.qEnd);
+        else { obj.quaternion.copy(anim.qStart); obj.rotateOnWorldAxis(anim.axis, anim.angle); }
+        anim = null; animating = false; axisLine.material.opacity = 0;
+      }
+    }
+    controls.update(); renderer.render(scene, camera);
+  }
+  renderer.setAnimationLoop(loop);
+  window.addEventListener('resize', () => {
+    const nw = holder.clientWidth, nh = holder.clientHeight;
+    if (!nw || !nh) return;
+    camera.aspect = nw/nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh);
+  });
+  return { spin, preview, resetHome, isAnimating: () => animating };
+}
+
+/* ---------- shared Cayley-table builder ---------- */
+function buildCayley(tableId, noteId, elems, shortOf, colorOf, composeIdx){
+  const table = document.getElementById(tableId), note = document.getElementById(noteId);
+  const n = elems.length;
+  const head = document.createElement('tr'); head.appendChild(document.createElement('th'));
+  elems.forEach((el,i) => { const th = document.createElement('th'); th.textContent = shortOf(el,i); head.appendChild(th); });
+  table.appendChild(head);
+  for (let r = 0; r < n; r++){
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = shortOf(elems[r], r); tr.appendChild(th);
+    for (let c = 0; c < n; c++){
+      const pi = composeIdx(r, c);               // index of  (row) applied-after (col):  do col, then row
+      const td = document.createElement('td');
+      const cell = document.createElement('div'); cell.className = 'cell';
+      cell.style.background = colorOf(elems[pi], pi); cell.textContent = shortOf(elems[pi], pi);
+      td.appendChild(cell);
+      td.addEventListener('mouseenter', () => {
+        note.innerHTML = `<b>${shortOf(elems[r],r)}</b> after <b>${shortOf(elems[c],c)}</b> &nbsp;=&nbsp; <b>${shortOf(elems[pi],pi)}</b>`;
+        table.querySelectorAll('td.hl').forEach(x => x.classList.remove('hl')); td.classList.add('hl');
+      });
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  table.addEventListener('mouseleave', () => { note.textContent = note.dataset.rest || 'Hover a cell.'; table.querySelectorAll('td.hl').forEach(x => x.classList.remove('hl')); });
+}
+
+/* ===================================================================
+   SECTION 1 — V4 (rectangular brick, three 180 turns)
+   =================================================================== */
+(function setupV4(){
+  const CLR = { top:0x2faf9e, bottom:0xe24a3b, side:0x39404e, gold:0xefc94c, dark:0x20242e };
+  // abstract elements, codes chosen so composition = XOR  (RX=01, RZ=10, RY=11)
+  const ELEMS = [
+    { code:0b00, name:'rest',                     short:'e', axis:null,      angle:0,       cls:'#c7ccda' },
+    { code:0b01, name:'flip sideways',            short:'F', axis:[1,0,0],   angle:Math.PI, cls:'#efa13c' },
+    { code:0b10, name:'tumble end-over-end',      short:'T', axis:[0,0,1],   angle:Math.PI, cls:'#efa13c' },
+    { code:0b11, name:'spin a half-turn',         short:'S', axis:[0,1,0],   angle:Math.PI, cls:'#2faf9e' },
+  ];
+  const byCode = new Map(ELEMS.map(e => [e.code, e]));
+  const orderName = { 0:'1', 1:'2', 2:'2', 3:'2' };
+
+  let scene = null;
+  if (threeOK){
+    scene = createSpinScene('holder-v4', {
+      cameraPos:[2.9, 2.5, 3.7], minD:3.4, maxD:9, axisLen:2.6,
+      build(obj){
+        const X = 2.4, Y = 0.55, Z = 1.5;                       // long, thin(up), deep
+        const mats = [
+          new THREE.MeshStandardMaterial({ color: CLR.side, roughness:.6 }),   // +x
+          new THREE.MeshStandardMaterial({ color: CLR.side, roughness:.6 }),   // -x
+          new THREE.MeshStandardMaterial({ color: CLR.top, roughness:.5 }),    // +y (top)
+          new THREE.MeshStandardMaterial({ color: CLR.bottom, roughness:.5 }), // -y (bottom)
+          new THREE.MeshStandardMaterial({ color: CLR.side, roughness:.6 }),   // +z
+          new THREE.MeshStandardMaterial({ color: CLR.side, roughness:.6 }),   // -z
+        ];
+        const box = new THREE.Mesh(new THREE.BoxGeometry(X, Y, Z), mats);
+        obj.add(box);
+        const eg = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(X, Y, Z)),
+          new THREE.LineBasicMaterial({ color: 0xcfd6e6, transparent:true, opacity:.35 }));
+        obj.add(eg);
+        // orientation markers: a gold corner and a dark corner on the same top edge
+        const s1 = new THREE.Mesh(new THREE.SphereGeometry(0.17, 28, 20), new THREE.MeshStandardMaterial({ color: CLR.gold, roughness:.3 }));
+        s1.position.set(X/2, Y/2, Z/2); obj.add(s1);
+        const s2 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 18), new THREE.MeshStandardMaterial({ color: CLR.dark, roughness:.4 }));
+        s2.position.set(-X/2, Y/2, Z/2); obj.add(s2);
+      }
+    });
+  }
+
+  let code = 0b00;
+  const nameEl = document.getElementById('v4-name'), metaEl = document.getElementById('v4-meta');
+  function render(){
+    const el = byCode.get(code);
+    nameEl.textContent = el.name;
+    const ord = orderName[code];
+    metaEl.innerHTML = `<span class="cls-dot" style="background:${el.cls}"></span>order <b>${ord}</b>` +
+      (code === 0 ? ' · at the starting position' : ' · <b>self-inverse</b> (press again to undo)');
+  }
+  render();
+
+  function apply(el){
+    if (scene && scene.isAnimating()) return;
+    code = code ^ el.code;
+    render();
+    if (scene && el.axis) scene.spin(new THREE.Vector3(...el.axis), el.angle);
+  }
+
+  let axOn = true;
+  const box = document.getElementById('v4-btns');
+  ELEMS.forEach(el => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (el.code === 0 ? ' identity wide' : '');
+    const sub = el.code === 0 ? 'identity' : (el.short === 'S' ? 'same side up' : 'other side up');
+    b.innerHTML = `<span class="bt">${el.code===0?'Do nothing':el.name[0].toUpperCase()+el.name.slice(1)}</span><span class="bc">${sub}</span>`;
+    if (el.code !== 0){ const sw = document.createElement('span'); sw.className='swatch'; sw.style.background=el.cls; b.appendChild(sw); }
+    b.addEventListener('click', () => apply(el));
+    if (el.axis){
+      b.addEventListener('mouseenter', () => { if (axOn && scene) scene.preview(new THREE.Vector3(...el.axis), el.cls); });
+      b.addEventListener('mouseleave', () => scene && scene.preview(null));
+    }
+    box.appendChild(b);
+  });
+  document.getElementById('v4-reset').addEventListener('click', () => { code = 0; render(); if (scene) scene.resetHome(); });
+  const axBtn = document.getElementById('v4-axis');
+  axBtn.addEventListener('click', () => { axOn = !axOn; axBtn.classList.toggle('on', axOn); if (!axOn && scene) scene.preview(null); });
+
+  // Cayley table (compose = XOR)
+  document.getElementById('note-v4').dataset.rest = 'Hover a cell to read the combination.';
+  buildCayley('cayley-v4', 'note-v4', ELEMS,
+    el => el.short,
+    el => el.cls,
+    (r, c) => ELEMS[r].code ^ ELEMS[c].code   // codes equal indices here (0,1,2,3)
+  );
+})();
+
+/* ===================================================================
+   SECTION 2 — S3 (equilateral triangle, rotations + flips)
+   =================================================================== */
+(function setupS3(){
+  const R = 1.18, d = deg => deg * Math.PI / 180;
+  const TV = [
+    [0, R, 0],
+    [R*Math.cos(d(210)), R*Math.sin(d(210)), 0],
+    [R*Math.cos(d(330)), R*Math.sin(d(330)), 0],
+  ];
+  const COL = [0xe24a3b, 0xefa13c, 0x2faf9e];
+  const norm = a => { const m = Math.hypot(...a); return [a[0]/m, a[1]/m, a[2]/m]; };
+  function rotP(p, k, th){ const [x,y,z]=p,[kx,ky,kz]=k; const c=Math.cos(th),s=Math.sin(th),dt=kx*x+ky*y+kz*z;
+    return [x*c+(ky*z-kz*y)*s+kx*dt*(1-c), y*c+(kz*x-kx*z)*s+ky*dt*(1-c), z*c+(kx*y-ky*x)*s+kz*dt*(1-c)]; }
+  function nearest(p){ let b=0,bd=1e9; for (let i=0;i<3;i++){ const dd=(p[0]-TV[i][0])**2+(p[1]-TV[i][1])**2+(p[2]-TV[i][2])**2; if(dd<bd){bd=dd;b=i;} } return b; }
+  const permOf = (ax, an) => { const k = norm(ax); return [0,1,2].map(i => nearest(rotP(TV[i], k, an))); };
+
+  const GENS = [
+    { id:'e',   kind:'rot',  label:'Identity',       axis:[0,0,1], angle:0 },
+    { id:'r1',  kind:'rot',  label:'Rotate 120°',    axis:[0,0,1], angle:d(120) },
+    { id:'r2',  kind:'rot',  label:'Rotate 240°',    axis:[0,0,1], angle:d(240) },
+    { id:'f0',  kind:'flip', label:'Flip @ corner 1', axis:[0,1,0], angle:Math.PI },
+    { id:'f1',  kind:'flip', label:'Flip @ corner 2', axis:norm(TV[1]), angle:Math.PI },
+    { id:'f2',  kind:'flip', label:'Flip @ corner 3', axis:norm(TV[2]), angle:Math.PI },
+  ];
+  GENS.forEach(g => g.perm = permOf(g.axis, g.angle));
+  const CLS = { rot:'#2faf9e', flip:'#efa13c', id:'#c7ccda' };
+  const clsOf = perm => key(perm) === '012' ? 'id' : (orderOf(perm) === 2 ? 'flip' : 'rot');
+
+  const byPerm = new Map(GENS.map(g => [key(g.perm), g]));
+  const ELEMS = [...byPerm.keys()].map(k => byPerm.get(k)); // 6 elements
+
+  let scene = null;
+  if (threeOK){
+    scene = createSpinScene('holder-s3', {
+      cameraPos:[0.9, 0.55, 3.5], minD:2.6, maxD:8, axisLen:1.9,
+      build(obj){
+        const pts = TV.map(v => new THREE.Vector3(...v));
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute([...TV[0], ...TV[1], ...TV[2]], 3));
+        g.computeVertexNormals();
+        obj.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color:0x9aa6c8, transparent:true, opacity:.22, roughness:.55, side:THREE.DoubleSide, depthWrite:false })));
+        const eg = new THREE.BufferGeometry().setFromPoints([pts[0],pts[1], pts[1],pts[2], pts[2],pts[0]]);
+        obj.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color:0xcfd6e6, transparent:true, opacity:.55 })));
+        const sg = new THREE.SphereGeometry(0.2, 30, 22);
+        for (let i = 0; i < 3; i++){
+          const m = new THREE.Mesh(sg, new THREE.MeshStandardMaterial({ color:COL[i], roughness:.35 }));
+          m.position.copy(pts[i]); obj.add(m);
+          const lab = makeLabelSprite(String(i+1)); lab.position.copy(pts[i]); obj.add(lab);
+        }
+      }
+    });
+  }
+
+  let content = [0,1,2];
+  const permEl = document.getElementById('s3-perm'), metaEl = document.getElementById('s3-meta');
+  function render(){
+    const tokenSite = invert(content);
+    const el = byPerm.get(key(tokenSite));
+    permEl.textContent = cycleNotation(tokenSite);
+    const cls = clsOf(tokenSite);
+    const label = cls === 'id' ? 'identity' : (cls === 'flip' ? 'a flip (order 2)' : 'a rotation (order 3)');
+    metaEl.innerHTML = `<span class="cls-dot" style="background:${CLS[cls]}"></span>${label}`;
+  }
+  render();
+
+  function apply(g){
+    if (scene && scene.isAnimating()) return;
+    const next = content.slice();
+    for (let i = 0; i < 3; i++) next[g.perm[i]] = content[i];
+    content = next; render();
+    if (scene && g.angle !== 0) scene.spin(new THREE.Vector3(...g.axis), g.angle);
+  }
+
+  let axOn = true;
+  function makeBtn(g, box){
+    const b = document.createElement('button');
+    b.className = 'btn' + (g.id === 'e' ? ' identity wide' : '');
+    b.innerHTML = `<span class="bt">${g.label}</span><span class="bc">${cycleNotation(g.perm)}</span>`;
+    if (g.id !== 'e'){ const sw = document.createElement('span'); sw.className='swatch'; sw.style.background = CLS[clsOf(g.perm)]; b.appendChild(sw); }
+    b.addEventListener('click', () => apply(g));
+    if (g.angle !== 0){
+      b.addEventListener('mouseenter', () => { if (axOn && scene) scene.preview(new THREE.Vector3(...g.axis), CLS[clsOf(g.perm)]); });
+      b.addEventListener('mouseleave', () => scene && scene.preview(null));
+    }
+    box.appendChild(b);
+  }
+  const rotBox = document.getElementById('s3-rot'), flipBox = document.getElementById('s3-flip');
+  makeBtn(GENS[0], rotBox); makeBtn(GENS[1], rotBox); makeBtn(GENS[2], rotBox);
+  makeBtn(GENS[3], flipBox); makeBtn(GENS[4], flipBox); makeBtn(GENS[5], flipBox);
+
+  document.getElementById('s3-reset').addEventListener('click', () => { content = [0,1,2]; render(); if (scene) scene.resetHome(); });
+  const axBtn = document.getElementById('s3-axis');
+  axBtn.addEventListener('click', () => { axOn = !axOn; axBtn.classList.toggle('on', axOn); if (!axOn && scene) scene.preview(null); });
+
+  // Cayley table
+  const order = [...ELEMS].sort((a,b) => orderOf(a.perm) - orderOf(b.perm) || key(a.perm).localeCompare(key(b.perm)));
+  const idxOf = new Map(order.map((g,i) => [key(g.perm), i]));
+  const shortMap = order.map((g,i) => {
+    if (key(g.perm) === '012') return 'e';
+    return (clsOf(g.perm) === 'rot' ? 'r' : 'f') + i;
+  });
+  document.getElementById('note-s3').dataset.rest = 'Hover a cell to read the product.';
+  buildCayley('cayley-s3', 'note-s3', order,
+    (el, i) => shortMap[i],
+    (el) => CLS[clsOf(el.perm)],
+    (r, c) => idxOf.get(key(compose(order[c].perm, order[r].perm)))  // do col, then row
+  );
+})();
+</script>
+</body>
+</html>

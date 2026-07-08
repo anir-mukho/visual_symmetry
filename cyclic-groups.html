@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cyclic Groups on the Circle — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code,.perm{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  p{margin:0 0 1.05em}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid rgba(55,72,159,.3)}
+  a:hover{border-color:var(--link)}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,8vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:15ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:10px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 330px}
+  @media (max-width:780px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 22%,#1b1f2b 0%,var(--viewport) 74%);min-height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px 16px 40px}
+  .stage svg{width:100%;height:auto;display:block}
+  .stage .cap{position:absolute;left:14px;right:14px;bottom:12px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;text-align:center;min-height:1.3em}
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:18px;color:#e8eaf0;display:flex;flex-direction:column;gap:14px}
+  @media (max-width:780px){ .panel{border-left:none;border-top:1px solid var(--viewport-line)} }
+  .plbl{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -3px}
+  .row-btns{display:flex;flex-wrap:wrap;gap:6px}
+  .cbtn{font-family:"JetBrains Mono",monospace;font-size:12px;border:1px solid var(--viewport-line);background:#1b1f2b;color:#e8eaf0;border-radius:8px;padding:6px 9px;cursor:pointer;min-width:32px;text-align:center}
+  .cbtn:hover{background:#232838;border-color:#414a5e}
+  .cbtn.on{background:#2a3346;border-color:var(--v3);color:#fff}
+  .cbtn.gen{color:var(--v3)}
+  .cbtn.small{padding:5px 7px;font-size:11px;min-width:26px}
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl{flex:1;min-width:74px;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl.solid{background:#2a3346;color:#fff;border-color:#3a465e}
+  .ctrl.on{background:#242a3a;color:#fff;border-color:#414a5e}
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:13px 15px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .big{font-size:24px;font-weight:600;color:#fff;margin:4px 0 3px;font-family:"JetBrains Mono",monospace}
+  .readout .rr{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#aeb4c4;line-height:1.6}
+  .readout .rr b{color:#fff}
+  .yes{color:var(--v3);font-weight:700}.no{color:var(--v2);font-weight:700}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#2a2f3a;border-radius:3px;outline:none;margin:6px 0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  .slval{font-family:"JetBrains Mono",monospace;color:#fff;font-weight:600}
+
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.4em 0}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:600;line-height:1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts{grid-template-columns:1fr} }
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 0</b> · The Circle</div>
+    <h1>n dots on a circle. Multiplying is just <span class="swap">adding angles</span>.</h1>
+    <p class="sub">The <span class="mono">n</span>-th roots of unity — <span class="mono">n</span> points spaced evenly around the unit circle — are the cyclic group <span class="mono">ℤ/n</span> in disguise. Multiply two of them and their angles simply add. That one fact makes the identity, the inverses, the generators, and every subgroup visible at a glance. After the non-commuting solids, here is the calm, abelian heart of the subject.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — THE DOTS AND THE GROUP LAW</span>
+    <h2>Two roots multiply by adding their angles</h2>
+    <p>Mark the point <span class="mono">1</span> at three o'clock and step counter-clockwise in equal jumps of <span class="mono">360°/n</span>. The <span class="mono">n</span> landing spots are the <em class="term">n-th roots of unity</em>, the solutions of <span class="mono">z<sup>n</sup> = 1</span>. Call them <span class="mono">ζ⁰, ζ¹, …, ζ<sup>n−1</sup></span>. Multiplying complex numbers on the circle adds their angles, so <span class="mono">ζ<sup>a</sup> · ζ<sup>b</sup> = ζ<sup>a+b</sup></span> — and if the sum overshoots, it simply wraps around. Pick two below and watch the angles add.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="m1svg" style="width:100%;max-width:360px"></div>
+        <div class="cap" id="m1cap"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl">First factor · tap a dot</div>
+        <div class="row-btns" id="m1a"></div>
+        <div class="plbl">Second factor · tap a dot</div>
+        <div class="row-btns" id="m1b"></div>
+        <div class="readout">
+          <div class="lbl" id="m1prodlbl">product</div>
+          <div class="big" id="m1prod"></div>
+          <div class="rr" id="m1rr"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl on" id="m1mode">Circle ⇄ Dial</button>
+          <button class="ctrl solid" id="m1play">Sweep</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The dot at <span class="mono">ζ⁰ = 1</span> (three o'clock) is the identity. The inverse of any root is its mirror image across the horizontal axis — the complex conjugate — shown hollow. Flip to <b>Dial</b> and the same group becomes a clock: "multiply" turns into "add the hours, mod n."</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — WHO GENERATES THE WHOLE GROUP?</span>
+    <h2>Step by k and you draw a star</h2>
+    <p>Start at <span class="mono">0</span> and keep jumping <span class="mono">k</span> places. You trace a <em class="term">star polygon</em>, and one of two things happens: either you eventually touch every dot — then <span class="mono">ζ<sup>k</sup></span> is a <em class="term">generator</em>, a single element that produces the entire group — or you close up early, having visited only a smaller ring. Which case you land in depends on one number: you reach everything exactly when <span class="mono">k</span> and <span class="mono">n</span> share no common factor. Change <span class="mono">n</span> and <span class="mono">k</span> and step it out.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="m2svg" style="width:100%;max-width:360px"></div>
+        <div class="cap" id="m2cap"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl">n = <span class="slval" id="m2nv">12</span></div>
+        <input type="range" id="m2n" min="2" max="16" value="12" />
+        <div class="plbl">step k · generators in teal</div>
+        <div class="row-btns" id="m2k"></div>
+        <div class="readout">
+          <div class="rr" id="m2rr"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="m2step">Step</button>
+          <button class="ctrl" id="m2run">Run</button>
+          <button class="ctrl" id="m2reset">Reset</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The count of generators — the values of <span class="mono">k</span> shown in teal — is <em class="term">Euler's totient</em> <span class="mono">φ(n)</span>, read straight off the picture. The number of steps before the star closes is the <em class="term">order</em> of <span class="mono">ζ<sup>k</sup></span>, equal to <span class="mono">n / gcd(k,n)</span>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — SUBGROUPS ARE INNER POLYGONS</span>
+    <h2>One subgroup for every divisor of n</h2>
+    <p>Every subgroup of a cyclic group is itself cyclic, and there is exactly one of each size that divides <span class="mono">n</span>. Geometrically it could not be simpler: the subgroup of order <span class="mono">d</span> is the set of <span class="mono">d</span>-th roots of unity, a smaller regular <span class="mono">d</span>-gon sharing the same centre. So the family of subgroups is nothing but the family of <em class="term">divisors</em> of <span class="mono">n</span>, and Lagrange's rule — that a subgroup's size divides the group's — is visibly automatic. Tap a divisor to inscribe its polygon.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="m3svg" style="width:100%;max-width:320px"></div>
+        <div id="m3lat" style="width:100%;max-width:360px;margin-top:2px"></div>
+        <div class="cap" id="m3cap"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl">group ℤ/n</div>
+        <div class="row-btns" id="m3n"></div>
+        <div class="readout">
+          <div class="lbl">selected subgroup</div>
+          <div class="big" id="m3big"></div>
+          <div class="rr" id="m3rr"></div>
+        </div>
+        <div class="plbl" style="margin-top:2px">Reading the lattice</div>
+        <p style="margin:0;font-size:14px;color:#aeb4c4;line-height:1.5">Lines join a subgroup to the next one that contains it. The lattice of subgroups is precisely the lattice of divisors of <b style="color:#fff">n</b>.</p>
+      </div>
+    </div>
+    <p class="caption">A prime <span class="mono">n</span> would show only two dots in the lattice — the whole group and the trivial one — the visual signature of a group with no proper subgroups at all.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — A GLANCE AHEAD</span>
+    <h2>The characters live on the very same circle</h2>
+    <p>Because <span class="mono">ℤ/n</span> is abelian, all of its irreducible representations are one-dimensional: representation number <span class="mono">j</span> simply sends the generator to the root <span class="mono">ζ<sup>j</sup></span>, so its character on element <span class="mono">k</span> is <span class="mono">ζ<sup>jk</sup></span> — again a root of unity. The whole character table is the grid of powers of <span class="mono">ζ</span>, the Fourier matrix, and the row-orthogonality you met for <span class="mono">S₄</span> becomes the ordinary orthogonality of waves. The circle that defined the group also indexes its representations.</p>
+    <div class="facts">
+      <div><div class="n">n</div><div class="k">elements</div></div>
+      <div><div class="n">φ(n)</div><div class="k">generators</div></div>
+      <div><div class="n">d | n</div><div class="k">one subgroup each</div></div>
+    </div>
+    <p>And nothing forces <span class="mono">n</span> to stay finite. Let the dots multiply without bound and the ring of hours never wraps — that is the infinite cyclic group <span class="mono">ℤ</span>, the integers under addition. Fill the circle completely instead, allowing <em>every</em> angle, and you reach the continuous circle group <span class="mono">S¹ = U(1)</span>, the first of the smooth "Lie" groups that govern much of physics. Each is the same idea — turning — carried to its limit.</p>
+    <p style="color:var(--ink-soft);font-size:16px;margin-top:1.8em">This module is the natural first stop of the course: the smallest, calmest groups, where every definition can simply be seen. From here the solids reintroduce non-commutativity, and Part 2 turns all of it into representations.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 0 · Cyclic Groups</p>
+    <p>Every angle, star, and subgroup on this page is computed live from the roots of unity themselves — the geometry and the arithmetic are two views of one object.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Cyclic groups Z/n via the n-th roots of unity — live SVG.
+   ============================================================ */
+const NS='http://www.w3.org/2000/svg';
+function E(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function mkSVG(w,h){const s=E('svg',{viewBox:`0 0 ${w} ${h}`,width:w,height:h});return s;}
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const divisors=n=>{const d=[];for(let i=1;i<=n;i++)if(n%i===0)d.push(i);return d;};
+const totient=n=>{let c=0;for(let k=1;k<=n;k++)if(gcd(k,n)===1)c++;return c;};
+const isPrime=p=>{if(p<2)return false;for(let i=2;i*i<=p;i++)if(p%i===0)return false;return true;};
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* point k of n on a circle centred (cx,cy) radius R; k=0 at right, CCW */
+function pt(k,n,cx,cy,R){const a=2*Math.PI*k/n;return [cx+R*Math.cos(a), cy-R*Math.sin(a)];}
+function arcPath(cx,cy,r,a0,a1){ // CCW arc from angle a0 to a1 (radians, math sense)
+  const x0=cx+r*Math.cos(a0), y0=cy-r*Math.sin(a0), x1=cx+r*Math.cos(a1), y1=cy-r*Math.sin(a1);
+  const large=(a1-a0)>Math.PI?1:0;
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 0 ${x1} ${y1}`;   // sweep 0 = CCW in y-down
+}
+
+/* ============ Module 1 : multiply two roots ============ */
+(function(){
+  const N=8; let a=1,b=3,active='a',mode='circle',anim=null;
+  const host=document.getElementById('m1svg');
+  const W=300,H=300,cx=150,cy=150,R=112;
+  function build(){
+    const svg=mkSVG(W,H);
+    if(mode==='circle'){
+      svg.appendChild(E('line',{x1:20,y1:cy,x2:W-20,y2:cy,stroke:'#242a36','stroke-width':1}));
+      svg.appendChild(E('line',{x1:cx,y1:20,x2:cx,y2:H-20,stroke:'#242a36','stroke-width':1}));
+    }
+    svg.appendChild(E('circle',{cx,cy,r:R,fill:'none',stroke:'#333b4a','stroke-width':1.5}));
+    // angle-add arcs
+    const ta=2*Math.PI*a/N, tb=2*Math.PI*b/N;
+    svg.appendChild(E('path',{d:arcPath(cx,cy,0.52*R,0,ta),fill:'none',stroke:'#e24a3b','stroke-width':3,'stroke-linecap':'round',opacity:.9}));
+    svg.appendChild(E('path',{d:arcPath(cx,cy,0.70*R,ta,ta+tb),fill:'none',stroke:'#6c7fe0','stroke-width':3,'stroke-linecap':'round',opacity:.9}));
+    // hand to product
+    const p=(a+b)%N; const [px,py]=pt(p,N,cx,cy,R);
+    svg.appendChild(E('line',{x1:cx,y1:cy,x2:px,y2:py,stroke:'#2faf9e','stroke-width':2,opacity:.5}));
+    // inverse of a (hollow)
+    const inv=(N-a)%N; const [ix,iy]=pt(inv,N,cx,cy,R);
+    svg.appendChild(E('circle',{cx:ix,cy:iy,r:7,fill:'none',stroke:'#efa13c','stroke-width':2,opacity:.8}));
+    const it=E('text',{x:ix,y:iy-13,'text-anchor':'middle',fill:'#efa13c','font-family':'JetBrains Mono, monospace','font-size':10}); it.textContent='a⁻¹'; svg.appendChild(it);
+    // dots
+    for(let k=0;k<N;k++){
+      const [x,y]=pt(k,N,cx,cy,R);
+      let fill='#2b3140',rr=8;
+      if(k===a)fill='#e24a3b'; else if(k===b)fill='#6c7fe0'; if(k===p){fill='#2faf9e';rr=10;}
+      if(k===0 && k!==a && k!==b && k!==p) fill='#4a5468';
+      const c=E('circle',{cx:x,cy:y,r:rr,fill,stroke:'#12141b','stroke-width':2,style:'cursor:pointer'});
+      c.addEventListener('click',()=>{ if(active==='a'){a=k;active='b';}else{b=k;active='a';} render(); });
+      svg.appendChild(c);
+      const lab=E('text',{x:x+ (Math.cos(2*Math.PI*k/N))*17, y:y-(Math.sin(2*Math.PI*k/N))*17+4,'text-anchor':'middle',fill:'#8a90a0','font-family':'JetBrains Mono, monospace','font-size':11});
+      lab.textContent = mode==='circle' ? (k===0?'1':(k===1?'ζ':'ζ'+toSup(k))) : k;
+      svg.appendChild(lab);
+      if(k===0){ const idt=E('text',{x,y:y+4,'text-anchor':'middle',fill:'#fff','font-family':'JetBrains Mono, monospace','font-size':10}); }
+    }
+    // moving dot for sweep
+    if(anim){ svg.appendChild(anim.dot=E('circle',{cx,cy,r:6,fill:'#2faf9e',stroke:'#fff','stroke-width':1.5})); }
+    host.innerHTML=''; host.appendChild(svg);
+  }
+  function toSup(k){return (''+k).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join('');}
+  function render(){
+    build();
+    const p=(a+b)%N;
+    const showA = mode==='circle'? `ζ${sup(a)}`:a, showB=mode==='circle'?`ζ${sup(b)}`:b, showP=mode==='circle'?`ζ${sup(p)}`:p;
+    document.getElementById('m1prodlbl').textContent = mode==='circle'?'product  ζᵃ · ζᵇ':'sum  a + b (mod 8)';
+    document.getElementById('m1prod').innerHTML = mode==='circle'
+      ? `${showA} · ${showB} = <span style="color:#2faf9e">${showP}</span>`
+      : `${a} + ${b} = <span style="color:#2faf9e">${p}</span> <span style="color:#8a90a0">(mod 8)</span>`;
+    document.getElementById('m1rr').innerHTML = mode==='circle'
+      ? `angles: ${a}·45° + ${b}·45° = ${((a+b)*45)%360}°<br>overshoot wraps around → back onto a root`
+      : `hours advance and wrap at 8 &nbsp;·&nbsp; identity = <b>0</b>`;
+    document.getElementById('m1cap').textContent = mode==='circle'
+      ? 'red arc = angle of first · blue arc = angle added by second'
+      : 'the additive clock ℤ/8 — the same group, relabelled';
+  }
+  function sup(k){return toSup(k);}
+  document.getElementById('m1mode').addEventListener('click',()=>{ mode=mode==='circle'?'dial':'circle'; render(); });
+  document.getElementById('m1play').addEventListener('click',()=>{
+    const ta=2*Math.PI*a/N, tb=2*Math.PI*b/N; const t0=performance.now(), dur=reduceMotion?1:900;
+    function fr(now){ const t=Math.min(1,(now-t0)/dur); const ang=ta+tb*t;
+      build(); if(anim&&anim.dot){} const [x,y]=[cx+R*Math.cos(ang),cy-R*Math.sin(ang)];
+      const svg=host.querySelector('svg'); const d=E('circle',{cx:x,cy:y,r:6,fill:'#2faf9e',stroke:'#fff','stroke-width':1.5}); svg.appendChild(d);
+      if(t<1) requestAnimationFrame(fr); }
+    requestAnimationFrame(fr);
+  });
+  // buttons
+  const ha=document.getElementById('m1a'), hb=document.getElementById('m1b');
+  for(let k=0;k<N;k++){ const x=document.createElement('button'); x.className='cbtn small'; x.textContent=k; x.addEventListener('click',()=>{a=k;render();}); ha.appendChild(x);
+    const y=document.createElement('button'); y.className='cbtn small'; y.textContent=k; y.addEventListener('click',()=>{b=k;render();}); hb.appendChild(y); }
+  function markBtns(){ [...ha.children].forEach((el,i)=>el.classList.toggle('on',i===a)); [...hb.children].forEach((el,i)=>el.classList.toggle('on',i===b)); }
+  const _render=render; render=function(){ _render(); markBtns(); };
+  render();
+})();
+
+/* ============ Module 2 : generators / star polygons ============ */
+(function(){
+  let n=12,k=5,step=0,timer=null;
+  const host=document.getElementById('m2svg');
+  const W=300,H=300,cx=150,cy=150,R=118;
+  function seqLen(){ return n/gcd(k,n); }             // order of k = steps to close
+  function build(){
+    const svg=mkSVG(W,H);
+    svg.appendChild(E('circle',{cx,cy,r:R,fill:'none',stroke:'#2b3242','stroke-width':1.2}));
+    const m=seqLen();
+    const visited=new Set();
+    // path up to current step
+    let dpath='';
+    for(let i=0;i<=Math.min(step,m);i++){ const v=(i*k)%n; visited.add(v); const [x,y]=pt(v,n,cx,cy,R); dpath+=(i===0?'M':'L')+` ${x} ${y} `; }
+    if(step>=m){ const [x0,y0]=pt(0,n,cx,cy,R); dpath+=`L ${x0} ${y0}`; }  // close
+    svg.appendChild(E('path',{d:dpath,fill:'none',stroke:'#2faf9e','stroke-width':2.4,'stroke-linejoin':'round',opacity:.95}));
+    // dots
+    for(let v=0;v<n;v++){ const [x,y]=pt(v,n,cx,cy,R);
+      const on=visited.has(v); const cur=((step*k)%n)===v && step>0;
+      const c=E('circle',{cx:x,cy:y,r:cur?9:6.5,fill:on?'#2faf9e':'#2b3140',stroke:cur?'#fff':'#12141b','stroke-width':2});
+      svg.appendChild(c);
+      if(n<=14){ const lab=E('text',{x:x+Math.cos(2*Math.PI*v/n)*16,y:y-Math.sin(2*Math.PI*v/n)*16+4,'text-anchor':'middle',fill:'#6f7688','font-family':'JetBrains Mono, monospace','font-size':10}); lab.textContent=v; svg.appendChild(lab); }
+    }
+    host.innerHTML=''; host.appendChild(svg);
+  }
+  function readout(){
+    const g=gcd(k,n), ord=n/g, gen=g===1;
+    document.getElementById('m2rr').innerHTML =
+      `gcd(${k}, ${n}) = <b>${g}</b><br>order of ζ<sup>${k}</sup> = ${n}/${g} = <b>${ord}</b><br>generator? ${gen?'<span class="yes">yes — reaches all '+n+'</span>':'<span class="no">no — only '+ord+' dots</span>'}<br>generators of ℤ/${n}: φ(${n}) = <b>${totient(n)}</b>`;
+    document.getElementById('m2cap').textContent = gen ? `star polygon {${n}/${k}} — one element makes the whole group` : `closes after ${ord} steps — a subgroup of order ${ord}`;
+  }
+  function buildKBtns(){
+    const host=document.getElementById('m2k'); host.innerHTML='';
+    for(let kk=1;kk<n;kk++){ const b=document.createElement('button'); b.className='cbtn small'+(gcd(kk,n)===1?' gen':'')+(kk===k?' on':'');
+      b.textContent=kk; b.addEventListener('click',()=>{k=kk;step=0;buildKBtns();build();readout();}); host.appendChild(b); }
+  }
+  document.getElementById('m2n').addEventListener('input',e=>{ n=+e.target.value; document.getElementById('m2nv').textContent=n; if(k>=n)k=n-1; if(k<1)k=1; step=0; stop(); buildKBtns(); build(); readout(); });
+  document.getElementById('m2step').addEventListener('click',()=>{ const m=seqLen(); step=step>=m?0:step+1; build(); readout(); });
+  function stop(){ if(timer){clearInterval(timer);timer=null;} document.getElementById('m2run').classList.remove('on'); document.getElementById('m2run').textContent='Run'; }
+  document.getElementById('m2run').addEventListener('click',()=>{
+    if(timer){stop();return;} const m=seqLen(); step=0; build();
+    document.getElementById('m2run').classList.add('on'); document.getElementById('m2run').textContent='Stop';
+    timer=setInterval(()=>{ step++; build(); readout(); if(step>=m){ stop(); } }, reduceMotion?60:360);
+  });
+  document.getElementById('m2reset').addEventListener('click',()=>{ step=0; stop(); build(); readout(); });
+  buildKBtns(); build(); readout();
+})();
+
+/* ============ Module 3 : subgroups / divisor lattice ============ */
+(function(){
+  let n=12,d=4;
+  const host=document.getElementById('m3svg'), lat=document.getElementById('m3lat');
+  const W=280,H=280,cx=140,cy=140,R=104;
+  function subgroup(nn,dd){const g=nn/dd,s=[];for(let j=0;j<dd;j++)s.push((g*j)%nn);return s;}
+  function buildCircle(){
+    const svg=mkSVG(W,H);
+    svg.appendChild(E('circle',{cx,cy,r:R,fill:'none',stroke:'#2b3242','stroke-width':1.2}));
+    const S=subgroup(n,d);
+    // polygon of the subgroup
+    if(d>1){ let dp=''; S.forEach((v,i)=>{const [x,y]=pt(v,n,cx,cy,R);dp+=(i===0?'M':'L')+`${x} ${y} `;}); const [x0,y0]=pt(S[0],n,cx,cy,R); dp+=`L ${x0} ${y0}`;
+      svg.appendChild(E('path',{d:dp,fill:'rgba(239,161,60,.10)',stroke:'#efa13c','stroke-width':2.2,'stroke-linejoin':'round'})); }
+    for(let v=0;v<n;v++){ const [x,y]=pt(v,n,cx,cy,R); const on=S.includes(v);
+      svg.appendChild(E('circle',{cx:x,cy:y,r:on?8:5.5,fill:on?'#efa13c':'#2b3140',stroke:'#12141b','stroke-width':2}));
+    }
+    host.innerHTML=''; host.appendChild(svg);
+  }
+  function buildLattice(){
+    const dvs=divisors(n);
+    const Om=x=>{let c=0,m=x;for(let p=2;p<=m;p++)while(m%p===0){m/=p;c++;}return c;};   // Ω(x)
+    const levels={}; dvs.forEach(x=>{const L=Om(x);(levels[L]=levels[L]||[]).push(x);});
+    const Ls=Object.keys(levels).map(Number).sort((a,b)=>a-b);
+    const W2=340,H2=Math.max(120,40+Ls.length*54), padY=28;
+    const svg=mkSVG(W2,H2);
+    const pos={};
+    Ls.forEach((L,li)=>{ const arr=levels[L]; const y=H2-padY-li*((H2-2*padY)/Math.max(1,Ls.length-1));
+      arr.sort((a,b)=>a-b).forEach((x,xi)=>{ const cxp=(W2/(arr.length+1))*(xi+1); pos[x]=[cxp,y]; }); });
+    // edges: covering (b/a prime)
+    dvs.forEach(a=>dvs.forEach(b=>{ if(b>a&&b%a===0&&isPrime(b/a)){ const [x1,y1]=pos[a],[x2,y2]=pos[b];
+      const hot = (a===d||divisors(d).includes(a)) && (b===d||divisors(d).includes(b)) && (d%b===0);
+      svg.appendChild(E('line',{x1,y1,x2,y2,stroke:hot?'#efa13c':'#39414f','stroke-width':hot?2.4:1.4,opacity:hot?1:.8})); }}));
+    // nodes
+    dvs.forEach(x=>{ const [cxp,cyp]=pos[x]; const sel=x===d; const inSub = d%x===0;
+      const g=E('g',{style:'cursor:pointer'});
+      g.appendChild(E('circle',{cx:cxp,cy:cyp,r:15,fill:sel?'#efa13c':(inSub?'#2a2f3a':'#191d27'),stroke:sel?'#fff':'#4a5468','stroke-width':sel?2.5:1.5}));
+      const t=E('text',{x:cxp,y:cyp+4,'text-anchor':'middle',fill:sel?'#12141b':'#cfd4e0','font-family':'JetBrains Mono, monospace','font-size':12,'font-weight':600}); t.textContent=x; g.appendChild(t);
+      g.addEventListener('click',()=>{ d=x; render(); });
+      svg.appendChild(g);
+    });
+    // caption
+    lat.innerHTML=''; lat.appendChild(svg);
+  }
+  function readout(){
+    document.getElementById('m3big').textContent = `order ${d}`;
+    const gen = d===1? '—' : `ζ${(''+ (n/d)).split('').map(c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[c]).join('')}`;
+    document.getElementById('m3rr').innerHTML =
+      `the ${d} ${d===1?'point':'points'} of a regular ${d}-gon<br>generated by <b>${gen}</b> &nbsp; index ${n/d}<br>divisors of ${n}: ${divisors(n).join(', ')}`;
+    document.getElementById('m3cap').textContent = d===n? `the whole group ℤ/${n}` : (d===1? 'the trivial subgroup {0}' : `subgroup of order ${d} inside ℤ/${n}`);
+  }
+  function buildNBtns(){
+    const host=document.getElementById('m3n'); host.innerHTML='';
+    [6,8,12].forEach(nn=>{ const b=document.createElement('button'); b.className='cbtn'+(nn===n?' on':''); b.textContent='ℤ/'+nn;
+      b.addEventListener('click',()=>{ n=nn; if(n%d!==0)d= n; d=Math.min(d,n); if(n%d!==0)d=1; render(); }); host.appendChild(b); });
+  }
+  function render(){ buildNBtns(); buildCircle(); buildLattice(); readout(); }
+  render();
+})();
+</script>
+</body>
+</html>

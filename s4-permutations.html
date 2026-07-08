@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>S₄ as a Permutation Group — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0;
+    --even:#2faf9e; --odd:#e57345;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code,.perm,.cell{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:19px;letter-spacing:.01em;font-weight:600;margin:2.2em 0 .4em;text-transform:uppercase}
+  p{margin:0 0 1.05em}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid rgba(55,72,159,.3)}
+  a:hover{border-color:var(--link)}
+  .eyebrow{font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 1.4em}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(38px,8vw,76px);line-height:.98;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:15ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:54ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  .vtok{display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;border-radius:50%;color:#fff;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.78em;vertical-align:-.32em;margin:0 .05em}
+  .t1{background:var(--v1)}.t2{background:var(--v2)}.t3{background:var(--v3)}.t4{background:var(--v4)}
+
+  /* notation card in section 1 */
+  .notecard{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1.4em 0;background:var(--paper-2)}
+  @media(max-width:640px){.notecard{grid-template-columns:1fr}}
+  .notecard .nc-svg{background:#12141b;display:flex;align-items:center;justify-content:center;padding:14px;min-height:230px}
+  .notecard .nc-svg svg{width:100%;max-width:240px;height:auto;display:block}
+  .notecard .nc-body{padding:20px 22px}
+  .notecard .nc-body h3{margin-top:0}
+  .twoline{font-family:"JetBrains Mono",monospace;font-size:16px;line-height:1.5;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 14px;display:inline-block;margin:2px 0 10px;white-space:pre}
+  .arrowdef{color:var(--ink-soft);font-size:15px}
+
+  /* the interactive module */
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:8px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 348px}
+  @media (max-width:780px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 25%,#1b1f2b 0%,var(--viewport) 72%);min-height:420px;display:flex;align-items:center;justify-content:center;padding:16px}
+  .stage svg{width:100%;height:auto;max-height:420px}
+  .stage .cap{position:absolute;left:16px;bottom:12px;right:16px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.02em;pointer-events:none;min-height:1.3em}
+
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:18px 18px 20px;color:#e8eaf0;display:flex;flex-direction:column;gap:14px;max-height:700px;overflow-y:auto}
+  @media (max-width:780px){ .panel{border-left:none;border-top:1px solid var(--viewport-line);max-height:none} }
+  .panel::-webkit-scrollbar{width:8px}.panel::-webkit-scrollbar-thumb{background:#2f3542;border-radius:8px}
+  .plbl{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -2px}
+
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:13px 15px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .perm{font-size:25px;font-weight:600;margin:5px 0 4px;color:#fff;min-height:1.1em;font-family:"JetBrains Mono",monospace}
+  .readout .row{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#aeb4c4;line-height:1.6}
+  .readout .row b{color:#fff}
+
+  .parity{display:inline-flex;align-items:center;gap:6px;font-family:"Space Grotesk",sans-serif;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;color:#12141b}
+  .parity.even{background:var(--even)} .parity.odd{background:var(--odd);color:#fff}
+
+  /* token row (factorise builder) */
+  .tokrow{display:flex;gap:8px;justify-content:center}
+  .tok{width:44px;height:44px;border-radius:10px;border:2px solid transparent;color:#fff;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:19px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s,border-color .1s;user-select:none}
+  .tok:hover{transform:translateY(-2px)} .tok.sel{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+  .tk1{background:var(--v1)}.tk2{background:var(--v2)}.tk3{background:var(--v3)}.tk4{background:var(--v4)}
+
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl{flex:1;min-width:78px;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl.solid{background:#2a3346;color:#fff;border-color:#3a465e}
+  .ctrl:focus-visible{outline:2px solid var(--v4);outline-offset:2px}
+
+  /* factor slots + palette (multiply) */
+  .slots2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .slot{border:1px solid var(--viewport-line);border-radius:10px;padding:9px 10px;background:#141721;cursor:pointer;transition:border-color .1s}
+  .slot.active{border-color:var(--v4);box-shadow:0 0 0 2px rgba(108,127,224,.25)}
+  .slot .st{font-family:"Space Grotesk",sans-serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--viewport-soft)}
+  .slot .sv{font-family:"JetBrains Mono",monospace;font-size:17px;font-weight:600;color:#fff;margin-top:3px;min-height:1.1em}
+  .pal{display:flex;flex-direction:column;gap:8px}
+  .palgrp .pt{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.05em;color:var(--viewport-soft);margin:0 0 4px;display:flex;align-items:center;gap:6px}
+  .palgrp .pt i{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .pgrid{display:flex;flex-wrap:wrap;gap:5px}
+  .pbtn{font-family:"JetBrains Mono",monospace;font-size:11px;border:1px solid var(--viewport-line);background:#1b1f2b;color:#e8eaf0;border-radius:7px;padding:5px 7px;cursor:pointer}
+  .pbtn:hover{background:#232838;border-color:#414a5e}
+  .pbtn.on{outline:2px solid var(--v4);outline-offset:1px}
+
+  .facts{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.4em 0}
+  .facts div{background:var(--paper);padding:15px 16px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:28px;font-weight:600;line-height:1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:600px){ .facts{grid-template-columns:1fr 1fr} }
+
+  table.ctab{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:15px}
+  table.ctab th,table.ctab td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line)}
+  table.ctab th{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  table.ctab td.mono,table.ctab td .mono{font-family:"JetBrains Mono",monospace}
+  .pill{display:inline-block;font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;color:#12141b}
+  .pill.even{background:var(--even)} .pill.odd{background:var(--odd);color:#fff}
+  .cdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 4</b> · The Symmetric Group</div>
+    <h1>Four things in a row, and every way to <span class="swap">shuffle</span> them.</h1>
+    <p class="sub">Forget the solids for a moment. The group <span class="mono">S₄</span> is nothing but the twenty-four ways to rearrange four labelled objects — <span class="vtok t1">1</span> <span class="vtok t2">2</span> <span class="vtok t3">3</span> <span class="vtok t4">4</span> — and the rule for doing one shuffle after another. Everything about it can be seen with arrows and strands. Let's build the whole group by hand.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — THREE WAYS TO WRITE A SHUFFLE</span>
+    <h2>A permutation is just "where each thing goes"</h2>
+    <p>A <em class="term">permutation</em> of <span class="mono">{1,2,3,4}</span> is a rule sending each number to a number, using each exactly once. There are three standard ways to write one down, and it pays to read all three fluently. Take the shuffle below as our specimen.</p>
+    <div class="notecard">
+      <div class="nc-svg"><div id="introSvg"></div></div>
+      <div class="nc-body">
+        <h3>The specimen</h3>
+        <div class="twoline" id="twoLine"></div>
+        <p class="arrowdef"><b>Two-line:</b> top row is the input, bottom row is where it lands.</p>
+        <p class="arrowdef"><b>One-line:</b> <span class="mono" id="oneLine"></span> — just the bottom row.</p>
+        <p class="arrowdef"><b>Cycle:</b> <span class="mono" id="cycLine" style="font-size:1.05em;color:var(--ink)"></span> — follow each arrow until it loops. A number sent to itself is left out.</p>
+      </div>
+    </div>
+    <p>The <em class="term">wiring diagram</em> on the left is the most honest picture: four strands enter at the top in order and leave at the bottom rearranged. Each place two strands cross is one elementary swap — remember that, because it turns out to hold the deepest secret of the group.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — FACTORISE INTO CYCLES</span>
+    <h2>Every shuffle breaks into independent cycles</h2>
+    <p>Follow where a number goes, then where <em>that</em> goes, and so on: sooner or later you return to the start, having traced a <em class="term">cycle</em>. Do it for every number and the permutation splits into <em class="term">disjoint cycles</em> that don't interfere. Build any arrangement below — tap two tokens to swap them, or shuffle — and watch it decompose.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="facGraph"></div>
+        <div class="cap" id="facCap">Tap two tokens to swap · press Trace to follow the cycles</div>
+      </div>
+      <div class="panel">
+        <div class="plbl">Current arrangement · tap two to swap</div>
+        <div class="tokrow" id="facToks"></div>
+        <div class="ctrls">
+          <button class="ctrl" id="facShuffle">Shuffle</button>
+          <button class="ctrl" id="facReset">Reset</button>
+          <button class="ctrl solid" id="facTrace">Trace cycles</button>
+        </div>
+        <div class="readout">
+          <div class="lbl">Disjoint cycle form</div>
+          <div class="perm" id="facCyc">e</div>
+          <div class="row" id="facMap"></div>
+          <div class="row">as transpositions &nbsp;<b id="facTr">—</b></div>
+          <div class="row" style="margin-top:6px">parity <span id="facParity"></span> &nbsp; order <b id="facOrder">1</b></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">A cycle of length <span class="mono">k</span> is <span class="mono">k−1</span> swaps. Adding those up over all cycles gives a transposition count — the key to Section 04.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — MULTIPLY CYCLES</span>
+    <h2>Doing one shuffle after another</h2>
+    <p>The group operation is simply <em>composition</em>: perform one permutation, then a second, and the net result is a third. Pick a <b>first</b> shuffle and a <b>then</b> shuffle from the palette; the strands stack, the tokens flow top to bottom, and the product appears. By convention the combined map is written <span class="mono">②∘①</span> — read right to left, "do ① first."</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="mulWire"></div>
+        <div class="cap" id="mulCap">Pick ① and ②, then press Play to watch the tokens travel.</div>
+      </div>
+      <div class="panel">
+        <div class="slots2">
+          <div class="slot active" id="slotP"><div class="st">① first</div><div class="sv" id="pP">e</div></div>
+          <div class="slot" id="slotQ"><div class="st">② then</div><div class="sv" id="pQ">e</div></div>
+        </div>
+        <div class="plbl">Choose a permutation for the active slot</div>
+        <div class="pal" id="palette"></div>
+        <div class="ctrls">
+          <button class="ctrl" id="mulSwap">Swap ①②</button>
+          <button class="ctrl" id="mulReset">Reset</button>
+          <button class="ctrl solid" id="mulPlay">Play</button>
+        </div>
+        <div class="readout">
+          <div class="lbl">Product &nbsp; ② ∘ ①</div>
+          <div class="perm" id="mulRes">e</div>
+          <div class="row">parity <span id="mulParity"></span> &nbsp; order <b id="mulOrder">1</b></div>
+          <div class="row" id="mulComm" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Try the same two factors in the other order. When the product changes, you have witnessed first-hand that <span class="mono">S₄</span> is <em class="term">non-abelian</em>: order matters.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — PARITY AND THE ALTERNATING GROUP</span>
+    <h2>Half of them are "even" — and that half is A<sub style="font-size:.6em">4</sub></h2>
+    <p>However you tear a permutation into transpositions, the <em>number</em> of them is always odd or always even — never both. That fixed flavour is its <em class="term">parity</em> (its <em class="term">sign</em>). In a wiring diagram it is just the crossing count read modulo two. Permutations split cleanly in half:</p>
+    <div class="facts">
+      <div><div class="n" style="color:#c7ccda">1</div><div class="k">identity · even</div></div>
+      <div><div class="n" style="color:var(--odd)">6</div><div class="k">transpositions · odd</div></div>
+      <div><div class="n" style="color:var(--even)">3</div><div class="k">double swaps · even</div></div>
+      <div><div class="n" style="color:var(--even)">8</div><div class="k">3-cycles · even</div></div>
+      <div><div class="n" style="color:var(--odd)">6</div><div class="k">4-cycles · odd</div></div>
+    </div>
+    <p>The <b>even</b> permutations — <span class="mono">1 + 3 + 8 = 12</span> of them — are closed under composition (even + even = even), contain the identity, and each has an even inverse. They therefore form a group in their own right: the <em class="term">alternating group</em> <span class="mono">A₄</span>, exactly half of <span class="mono">S₄</span>. The six transpositions and six 4-cycles are the odd outsiders. And this is no coincidence of naming — those twelve even permutations are precisely the twelve rotations of the tetrahedron from Module 1. Parity is the algebra behind "which symmetries you can reach without a mirror."</p>
+    <p>Because composition respects sign, the map <span class="mono">S₄ → {+1, −1}</span> sending each permutation to its parity is a homomorphism onto a two-element group, and <span class="mono">A₄</span> is its kernel — a <em class="term">normal subgroup of index 2</em>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — CONJUGACY BY CYCLE SHAPE</span>
+    <h2>The five families are the five shapes</h2>
+    <p>Two permutations are <em class="term">conjugate</em> — the same up to relabelling the four objects — exactly when they have the same <em class="term">cycle shape</em>. So the conjugacy classes of <span class="mono">S₄</span> can be listed by hand: they are the ways of writing 4 as a sum, the <em class="term">partitions of 4</em>.</p>
+    <table class="ctab">
+      <thead><tr><th>partition of 4</th><th>cycle shape</th><th>count</th><th>order</th><th>parity</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1+1+1+1</td><td class="mono">e</td><td class="mono">1</td><td class="mono">1</td><td><span class="pill even">even</span></td></tr>
+        <tr><td class="mono">2+1+1</td><td class="mono">(a b)</td><td class="mono">6</td><td class="mono">2</td><td><span class="pill odd">odd</span></td></tr>
+        <tr><td class="mono">2+2</td><td class="mono">(a b)(c d)</td><td class="mono">3</td><td class="mono">2</td><td><span class="pill even">even</span></td></tr>
+        <tr><td class="mono">3+1</td><td class="mono">(a b c)</td><td class="mono">8</td><td class="mono">3</td><td><span class="pill even">even</span></td></tr>
+        <tr><td class="mono">4</td><td class="mono">(a b c d)</td><td class="mono">6</td><td class="mono">4</td><td><span class="pill odd">odd</span></td></tr>
+      </tbody>
+    </table>
+    <p>Five partitions, five classes, <span class="mono">1+6+3+8+6 = 24</span>. This is the same census the cube and octahedron produced geometrically — now read straight off the arithmetic of 4. Five classes will mean five irreducible representations when we reach Part 2.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">06 — THE PATTERN FOR EVERY n</span>
+    <h2>Nothing here was special about four</h2>
+    <p>Replace four objects by <span class="mono">n</span> and every idea survives intact. The <em class="term">symmetric group</em> <span class="mono">Sₙ</span> collects all <span class="mono">n!</span> permutations of <span class="mono">{1,…,n}</span>; each still factors uniquely into disjoint cycles; each still carries a parity, and the even ones still form a subgroup of half the size — the alternating group <span class="mono">Aₙ</span>, of order <span class="mono">n!/2</span>, normal of index two. The conjugacy classes are still counted by the partitions of <span class="mono">n</span>.</p>
+    <p>The tetrahedron, cube, and octahedron were simply the smallest cases wearing geometric clothing: their symmetry groups were <span class="mono">A₄</span>, <span class="mono">S₄</span>, and <span class="mono">S₄</span> again. Beyond them the family keeps growing — <span class="mono">|S₅| = 120</span>, <span class="mono">|S₆| = 720</span> — and something dramatic waits at <span class="mono">n = 5</span>: the group <span class="mono">A₅</span> can no longer be broken apart, a fact that ultimately explains why the general quintic equation has no formula in radicals. But that is a story for later in the course.</p>
+    <p style="color:var(--ink-soft);font-size:16px;margin-top:1.8em">Next in the series: turning these permutations into matrices — the first genuine <em>representation</em> — and reading the character table that Part 2 is built around.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 4 of Part 1</p>
+    <p>Every product and factorisation on this page is computed live from the permutations themselves — the pictures and the notation are two views of the same arithmetic, and cannot disagree.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   S4 as a permutation group — pure combinatorics, live SVG.
+   Permutations are length-4 arrays p (0-indexed): p[i] = image of i.
+   ============================================================ */
+const SVGNS='http://www.w3.org/2000/svg';
+function S(tag, attrs){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+const TOKHEX=['#e24a3b','#efa13c','#2faf9e','#6c7fe0'];
+const CYCCOL=['#e24a3b','#2faf9e','#6c7fe0','#efa13c'];
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- permutation utilities ---------- */
+const ID=[0,1,2,3];
+function compose(a,b){ return a.map((_,i)=>a[b[i]]); }   // (a∘b)(i)=a(b(i)) : apply b first, then a
+function invert(p){ const r=[0,0,0,0]; p.forEach((v,i)=>r[v]=i); return r; }
+function eq(a,b){ return a.every((v,i)=>v===b[i]); }
+function cyclesOf(p){                    // returns array of cycles (each array of 0-idx), including... no fixed singletons
+  const seen=[false,false,false,false], out=[];
+  for(let i=0;i<4;i++){
+    if(seen[i]) continue;
+    const c=[]; let j=i;
+    while(!seen[j]){ seen[j]=true; c.push(j); j=p[j]; }
+    out.push(c);
+  }
+  return out;                            // includes length-1 cycles (fixed points)
+}
+function cycleNotation(p){
+  const cs=cyclesOf(p).filter(c=>c.length>1);
+  if(!cs.length) return 'e';
+  return cs.map(c=>'('+c.map(x=>x+1).join(' ')+')').join('');
+}
+function transpositionsOf(p){            // canonical: each cycle (a0 a1..ak) -> (a0 ak)(a0 a{k-1})..(a0 a1)
+  const out=[];
+  cyclesOf(p).filter(c=>c.length>1).forEach(c=>{
+    for(let k=c.length-1;k>=1;k--) out.push([c[0]+1, c[k]+1]);
+  });
+  return out;
+}
+function parityOf(p){ return transpositionsOf(p).length % 2; }   // 0 even, 1 odd
+function orderOf(p){
+  const lens=cyclesOf(p).map(c=>c.length);
+  const gcd=(a,b)=>b?gcd(b,a%b):a, lcm=(a,b)=>a/gcd(a,b)*b;
+  return lens.reduce(lcm,1);
+}
+function cycleTypeKey(p){ return cyclesOf(p).map(c=>c.length).sort((a,b)=>b-a).join('+'); }
+
+/* all 24 permutations */
+function allPerms(){
+  const res=[]; const a=[0,1,2,3];
+  (function rec(k){ if(k===4){res.push(a.slice());return;} for(let i=k;i<4;i++){[a[k],a[i]]=[a[i],a[k]]; rec(k+1); [a[k],a[i]]=[a[i],a[k]];} })(0);
+  return res;
+}
+const ALL=allPerms();
+
+/* ================= section 01 : notation card ================= */
+const SPEC=[1,3,0,2];   // one-line 2 4 1 3  → (1 2 4 3)
+(function(){
+  document.getElementById('introSvg').appendChild(wiringSVG([SPEC], {w:230,h:210,labelTop:true,labelBot:true}));
+  const tl = '1 2 3 4\n'+SPEC.map(v=>v+1).join(' ');
+  document.getElementById('twoLine').textContent = tl;
+  document.getElementById('oneLine').textContent = SPEC.map(v=>v+1).join(' ');
+  document.getElementById('cycLine').textContent = cycleNotation(SPEC);
+})();
+
+/* ================= shared: wiring diagram ================= */
+function wiringSVG(blocks, opt){
+  const w=opt.w||300, h=opt.h||240, padX=34, padTop=26, padBot=26;
+  const X=k=> padX + k*((w-2*padX)/3);
+  const n=blocks.length;
+  const Y=[]; for(let m=0;m<=n;m++) Y.push(padTop + m*((h-padTop-padBot)/n));
+  const svg=S('svg',{viewBox:`0 0 ${w} ${h}`, width:w, height:h});
+  // position of each token after m blocks
+  const posAfter=[ID.slice()];
+  for(let m=0;m<n;m++) posAfter.push(posAfter[m].map((_,i)=>blocks[m][posAfter[m][i]]));
+  // slot->token at each level
+  const slotTok=posAfter.map(pa=>invert(pa));
+  // strands per block
+  for(let m=0;m<n;m++){
+    for(let s=0;s<4;s++){
+      const tok=slotTok[m][s];
+      const path=S('path',{d:`M ${X(s)} ${Y[m]} C ${X(s)} ${Y[m]+34}, ${X(blocks[m][s])} ${Y[m+1]-34}, ${X(blocks[m][s])} ${Y[m+1]}`,
+        fill:'none',stroke:TOKHEX[tok],'stroke-width':4,'stroke-linecap':'round',opacity:.92});
+      svg.appendChild(path);
+    }
+    if(m<n-1){ // divider
+      svg.appendChild(S('line',{x1:padX-10,y1:Y[m+1],x2:w-padX+10,y2:Y[m+1],stroke:'#2a2f3a','stroke-width':1,'stroke-dasharray':'3 4'}));
+    }
+  }
+  // nodes
+  for(let s=0;s<4;s++){
+    svg.appendChild(dot(X(s),Y[0],slotTok[0][s]));
+    svg.appendChild(dot(X(s),Y[n],slotTok[n][s]));
+    if(opt.labelTop){ const t=S('text',{x:X(s),y:Y[0]-12,'text-anchor':'middle',fill:'#c7ccda','font-family':'JetBrains Mono, monospace','font-size':12}); t.textContent=s+1; svg.appendChild(t); }
+  }
+  // block labels
+  if(opt.blockLabels){ for(let m=0;m<n;m++){ const t=S('text',{x:12,y:(Y[m]+Y[m+1])/2+4,fill:'#6f7688','font-family':'Space Grotesk, sans-serif','font-size':13,'font-weight':600}); t.textContent=opt.blockLabels[m]; svg.appendChild(t);} }
+  return svg;
+  function dot(x,y,tok){ const g=S('g',{}); g.appendChild(S('circle',{cx:x,cy:y,r:9,fill:TOKHEX[tok],stroke:'#12141b','stroke-width':2}));
+    const t=S('text',{x,y:y+4,'text-anchor':'middle',fill:'#fff','font-family':'Space Grotesk, sans-serif','font-size':11,'font-weight':600}); t.textContent=tok+1; g.appendChild(t); return g; }
+}
+
+/* ================= section 02 : FACTORISE module ================= */
+let facArr=[0,1,2,3];     // one-line arrangement: position i holds token facArr[i]  → permutation π(i)=facArr[i]
+let facSel=-1, facTraceTimers=[];
+const facToksEl=document.getElementById('facToks');
+const facGraphEl=document.getElementById('facGraph');
+
+function facPerm(){ return facArr.slice(); }
+function renderFacToks(){
+  facToksEl.innerHTML='';
+  facArr.forEach((tok,pos)=>{
+    const b=document.createElement('button');
+    b.className='tok tk'+(tok+1)+(facSel===pos?' sel':'');
+    b.textContent=tok+1;
+    b.addEventListener('click',()=>facClick(pos));
+    facToksEl.appendChild(b);
+  });
+}
+function facClick(pos){
+  if(facSel===-1){ facSel=pos; }
+  else if(facSel===pos){ facSel=-1; }
+  else { [facArr[facSel],facArr[pos]]=[facArr[pos],facArr[facSel]]; facSel=-1; }
+  clearTrace(); renderFacToks(); renderFacGraph(); updateFacReadout();
+}
+function updateFacReadout(){
+  const p=facPerm();
+  document.getElementById('facCyc').textContent=cycleNotation(p);
+  document.getElementById('facMap').innerHTML = 'sends &nbsp;'+[0,1,2,3].map(i=>`<b>${i+1}→${p[i]+1}</b>`).join(' &nbsp;');
+  const tr=transpositionsOf(p);
+  document.getElementById('facTr').textContent = tr.length ? tr.map(t=>`(${t[0]} ${t[1]})`).join('') + `  · ${tr.length}` : 'none · 0';
+  const par=parityOf(p);
+  document.getElementById('facParity').innerHTML = par? '<span class="parity odd">odd · outside A₄</span>' : '<span class="parity even">even · in A₄</span>';
+  document.getElementById('facOrder').textContent=orderOf(p);
+}
+/* arrow-graph */
+const GN=[[80,78],[222,78],[222,220],[80,220]];  // node positions for 1..4
+function renderFacGraph(revealSet){
+  const p=facPerm();
+  const svg=S('svg',{viewBox:'0 0 302 300'});
+  const defs=S('defs',{}); 
+  CYCCOL.forEach((c,ci)=>{ const m=S('marker',{id:'ah'+ci,viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'}); m.appendChild(S('path',{d:'M0 0 L10 5 L0 10 z',fill:c})); defs.appendChild(m);});
+  svg.appendChild(defs);
+  const cyc=cyclesOf(p);
+  const cidOf={}; cyc.forEach((c,ci)=>c.forEach(x=>cidOf[x]=ci));
+  // arrows i -> p[i]
+  const arrows=[];
+  for(let i=0;i<4;i++){
+    const j=p[i], ci=cidOf[i]%CYCCOL.length, col=CYCCOL[ci];
+    let path;
+    if(i===j){ // self-loop above node
+      const [x,y]=GN[i]; const up = y<150?-1:1; // loop outward vertically
+      const oy = y + up*0; 
+      path=S('path',{d:`M ${x-13} ${y-2} C ${x-30} ${y+up*-40}, ${x+30} ${y+up*-40}, ${x+13} ${y-2}`,fill:'none',stroke:col,'stroke-width':3.2,'marker-end':`url(#ah${ci%CYCCOL.length})`});
+    } else {
+      const [x1,y1]=GN[i],[x2,y2]=GN[j];
+      const mx=(x1+x2)/2, my=(y1+y2)/2, dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+      const off = (i<j?1:-1)*26; const cx=mx - dy/len*off, cy=my + dx/len*off;
+      // shorten endpoints to node radius
+      const t1=15/len, t2=1-19/len;
+      const sx=x1+(x2-x1)*0, sy=y1+(y2-y1)*0;
+      path=S('path',{d:`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,fill:'none',stroke:col,'stroke-width':3.2,'marker-end':`url(#ah${ci%CYCCOL.length})`});
+    }
+    if(revealSet && !revealSet.has(i)) path.setAttribute('opacity','0.08');
+    arrows.push(path); svg.appendChild(path);
+  }
+  // nodes on top
+  for(let i=0;i<4;i++){ const [x,y]=GN[i];
+    svg.appendChild(S('circle',{cx:x,cy:y,r:19,fill:'#1b1f2b',stroke:'#3a465e','stroke-width':2}));
+    const t=S('text',{x,y:y+6,'text-anchor':'middle',fill:'#fff','font-family':'Space Grotesk, sans-serif','font-size':17,'font-weight':600}); t.textContent=i+1; svg.appendChild(t);
+  }
+  facGraphEl.innerHTML=''; facGraphEl.appendChild(svg);
+}
+function clearTrace(){ facTraceTimers.forEach(t=>clearTimeout(t)); facTraceTimers=[]; document.getElementById('facCap').textContent='Tap two tokens to swap · press Trace to follow the cycles'; }
+function traceCycles(){
+  clearTrace();
+  const p=facPerm(); const cyc=cyclesOf(p);
+  const order=[]; cyc.forEach(c=>c.forEach(x=>order.push(x)));
+  const shown=new Set(); let built='';
+  renderFacGraph(shown);
+  let step=0;
+  const cs=cyclesOf(p).filter(c=>c.length>1);
+  const flat=[]; cs.forEach((c,ci)=>c.forEach((x,xi)=>flat.push({x,ci,startOfCycle:xi===0,cyc:c})));
+  if(!flat.length){ document.getElementById('facCap').textContent='e — the identity fixes everything (four 1-cycles)'; return; }
+  const delay=reduceMotion?60:560;
+  flat.forEach((it,k)=>{
+    facTraceTimers.push(setTimeout(()=>{
+      shown.add(it.x); renderFacGraph(shown);
+      if(it.startOfCycle) built += (built?' ':'')+'('+(it.x+1);
+      else built += ' '+(it.x+1);
+      const isLast = (k===flat.length-1) || flat[k+1].startOfCycle;
+      let disp = built + (isLast?')':'');
+      document.getElementById('facCap').textContent = 'tracing:  '+disp;
+      if(isLast) built = disp;
+    }, k*delay));
+  });
+  // also reveal fixed points faintly at end
+  facTraceTimers.push(setTimeout(()=>{ for(let i=0;i<4;i++) shown.add(i); renderFacGraph(shown);
+    document.getElementById('facCap').textContent='cycle form:  '+cycleNotation(p); }, flat.length*delay+120));
+}
+document.getElementById('facShuffle').addEventListener('click',()=>{ do{ for(let i=3;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [facArr[i],facArr[j]]=[facArr[j],facArr[i]];} }while(eq(facArr,ID)); facSel=-1; clearTrace(); renderFacToks(); renderFacGraph(); updateFacReadout(); });
+document.getElementById('facReset').addEventListener('click',()=>{ facArr=[0,1,2,3]; facSel=-1; clearTrace(); renderFacToks(); renderFacGraph(); updateFacReadout(); });
+document.getElementById('facTrace').addEventListener('click',traceCycles);
+renderFacToks(); renderFacGraph(); updateFacReadout();
+
+/* ================= section 03 : MULTIPLY module ================= */
+let P=[0,1,2,3], Q=[0,1,2,3], active='P', mulAnim=null;
+const mulWireEl=document.getElementById('mulWire');
+
+/* palette grouped by cycle type */
+const TYPE_META = {
+  '1+1+1+1':{name:'identity',    col:'#c7ccda'},
+  '2+1+1'  :{name:'transposition',col:'#e57345'},
+  '2+2'    :{name:'double swap', col:'#2faf9e'},
+  '3+1'    :{name:'3-cycle',     col:'#6c7fe0'},
+  '4'      :{name:'4-cycle',     col:'#efa13c'},
+};
+const TYPE_ORDER=['1+1+1+1','2+1+1','2+2','3+1','4'];
+function buildPalette(){
+  const host=document.getElementById('palette'); host.innerHTML='';
+  const groups={}; ALL.forEach(p=>{ const k=cycleTypeKey(p); (groups[k]=groups[k]||[]).push(p); });
+  TYPE_ORDER.forEach(k=>{
+    const meta=TYPE_META[k];
+    const g=document.createElement('div'); g.className='palgrp';
+    g.innerHTML=`<div class="pt"><i style="background:${meta.col}"></i>${meta.name} · ${groups[k].length}</div>`;
+    const grid=document.createElement('div'); grid.className='pgrid';
+    groups[k].sort((a,b)=>cycleNotation(a).localeCompare(cycleNotation(b))).forEach(p=>{
+      const b=document.createElement('button'); b.className='pbtn'; b.textContent=cycleNotation(p);
+      b.style.color=meta.col;
+      b.addEventListener('click',()=>{ if(active==='P'){P=p.slice(); active='Q';} else {Q=p.slice(); active='P';} refreshMul(); });
+      grid.appendChild(b);
+    });
+    g.appendChild(grid); host.appendChild(g);
+  });
+}
+function paritySpan(p){ return parityOf(p)? '<span class="parity odd">odd</span>' : '<span class="parity even">even</span>'; }
+function refreshMul(){
+  document.getElementById('pP').textContent=cycleNotation(P);
+  document.getElementById('pQ').textContent=cycleNotation(Q);
+  document.getElementById('slotP').classList.toggle('active',active==='P');
+  document.getElementById('slotQ').classList.toggle('active',active==='Q');
+  const R=compose(Q,P);            // do P first, then Q  = Q∘P
+  document.getElementById('mulRes').textContent=cycleNotation(R);
+  document.getElementById('mulParity').innerHTML=paritySpan(R);
+  document.getElementById('mulOrder').textContent=orderOf(R);
+  const Rrev=compose(P,Q);
+  document.getElementById('mulComm').innerHTML = eq(R,Rrev)
+    ? 'reverse order gives the same — these two commute'
+    : `reverse order ①∘② = <b>${cycleNotation(Rrev)}</b> — order matters!`;
+  drawMulWire();
+  document.getElementById('mulCap').textContent='Pick ① and ②, then press Play to watch the tokens travel.';
+}
+function drawMulWire(anim){
+  mulWireEl.innerHTML='';
+  const svg=wiringSVG([P,Q], {w:300,h:270,labelTop:true,blockLabels:['①','②']});
+  mulWireEl.appendChild(svg);
+  if(anim) animateTokens(svg);
+}
+function animateTokens(svg){
+  const w=300,h=270,padX=34,padTop=26,padBot=26;
+  const X=k=> padX + k*((w-2*padX)/3);
+  const Y=[padTop, padTop+(h-padTop-padBot)/2, h-padBot];
+  const posAfter=[ID.slice()]; posAfter.push(ID.map((_,i)=>P[i])); posAfter.push(ID.map((_,i)=>Q[posAfter[1][i]]));
+  const dots=[];
+  for(let i=0;i<4;i++){ const c=S('circle',{cx:X(i),cy:Y[0],r:7,fill:TOKHEX[i],stroke:'#fff','stroke-width':1.5}); svg.appendChild(c); dots.push(c); }
+  const dur=reduceMotion?1:1500;
+  const t0=performance.now();
+  function frame(now){
+    let t=Math.min(1,(now-t0)/dur);
+    const seg = t<0.5? 0:1; const lt = t<0.5? t/0.5 : (t-0.5)/0.5;
+    const e = lt<.5?2*lt*lt:1-(-2*lt+2)**2/2;
+    for(let i=0;i<4;i++){
+      const a=posAfter[seg][i], b=posAfter[seg+1][i];
+      const x=X(a)+(X(b)-X(a))*e, y=Y[seg]+(Y[seg+1]-Y[seg])*e;
+      dots[i].setAttribute('cx',x); dots[i].setAttribute('cy',y);
+    }
+    if(t<1) requestAnimationFrame(frame);
+    else document.getElementById('mulCap').textContent='product  ②∘①  =  '+cycleNotation(compose(Q,P));
+  }
+  requestAnimationFrame(frame);
+}
+document.getElementById('slotP').addEventListener('click',()=>{active='P';refreshMul();});
+document.getElementById('slotQ').addEventListener('click',()=>{active='Q';refreshMul();});
+document.getElementById('mulSwap').addEventListener('click',()=>{ [P,Q]=[Q,P]; refreshMul(); });
+document.getElementById('mulReset').addEventListener('click',()=>{ P=[0,1,2,3]; Q=[0,1,2,3]; active='P'; refreshMul(); });
+document.getElementById('mulPlay').addEventListener('click',()=>drawMulWire(true));
+buildPalette(); refreshMul();
+</script>
+</body>
+</html>

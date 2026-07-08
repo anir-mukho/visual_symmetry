@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The 12 Rotations of a Tetrahedron — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1;
+    --paper-2:#e9ebe6;
+    --ink:#181a20;
+    --ink-soft:#565a63;
+    --line:#d6d8d1;
+    --viewport:#12141b;
+    --viewport-2:#181b24;
+    --viewport-line:#2a2f3a;
+    --viewport-soft:#8a90a0;
+    --v1:#e24a3b;
+    --v2:#efa13c;
+    --v3:#2faf9e;
+    --v4:#6c7fe0;
+    --link:#37489f;
+    --maxw:920px;
+    --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;
+    font-size:19px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+
+  /* ---------- typography ---------- */
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code,.perm,.cell{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:19px;letter-spacing:.01em;font-weight:600;margin:2.2em 0 .4em;text-transform:uppercase}
+  p{margin:0 0 1.05em}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid rgba(55,72,159,.3)}
+  a:hover{border-color:var(--link)}
+  .eyebrow{
+    font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0 0 1.4em
+  }
+  .lead{font-size:clamp(20px,2.4vw,23px);line-height:1.5}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);
+    border-bottom:1px solid var(--line);
+  }
+  .hero .kicker{
+    font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;
+    color:var(--ink-soft);margin-bottom:26px;
+  }
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{
+    font-size:clamp(38px,8vw,76px);line-height:.98;letter-spacing:-.03em;
+    font-weight:600;margin:0 0 .35em;max-width:15ch;
+  }
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:52ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  /* ---------- generic section ---------- */
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;
+    color:var(--ink-soft);margin-bottom:14px;display:block
+  }
+
+  /* ---------- little inline vertex tokens in prose ---------- */
+  .vtok{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:1.5em;height:1.5em;border-radius:50%;color:#fff;font-weight:600;
+    font-family:"Space Grotesk",sans-serif;font-size:.78em;vertical-align:-.32em;
+    margin:0 .05em;
+  }
+  .t1{background:var(--v1)}.t2{background:var(--v2)}.t3{background:var(--v3)}.t4{background:var(--v4)}
+
+  /* ---------- the interactive module ---------- */
+  .module{
+    background:var(--viewport);
+    border-radius:16px;
+    overflow:hidden;
+    margin:8px 0 4px;
+    box-shadow:0 24px 60px -30px rgba(20,22,30,.55);
+    display:grid;
+    grid-template-columns:1fr 340px;
+  }
+  @media (max-width:760px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 30%,#1b1f2b 0%,var(--viewport) 70%);min-height:420px}
+  @media (max-width:760px){ .stage{min-height:340px} }
+  #canvasHolder{position:absolute;inset:0}
+  #canvasHolder canvas{display:block;width:100%;height:100%}
+  .stage .hint{
+    position:absolute;left:16px;bottom:14px;color:var(--viewport-soft);
+    font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.03em;pointer-events:none
+  }
+  .stage .fallback{
+    position:absolute;inset:0;display:none;place-items:center;text-align:center;
+    color:var(--viewport-soft);font-family:"Space Grotesk",sans-serif;padding:24px;font-size:15px
+  }
+
+  .panel{
+    background:var(--viewport-2);
+    border-left:1px solid var(--viewport-line);
+    padding:20px 20px 22px;
+    color:#e8eaf0;
+    display:flex;flex-direction:column;gap:16px;
+    max-height:640px;overflow-y:auto;
+  }
+  @media (max-width:760px){ .panel{border-left:none;border-top:1px solid var(--viewport-line);max-height:none} }
+  .panel::-webkit-scrollbar{width:8px}
+  .panel::-webkit-scrollbar-thumb{background:#2f3542;border-radius:8px}
+
+  /* current-state readout */
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:14px 15px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .perm{font-size:27px;font-weight:600;letter-spacing:.02em;margin:6px 0 3px;color:#fff;min-height:1.1em}
+  .readout .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:#aeb4c4;line-height:1.5}
+  .readout .meta b{color:#fff;font-weight:600}
+  .cls-dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:5px}
+
+  .grp-title{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -4px;display:flex;align-items:center;gap:7px}
+  .grp-title .cls-dot{margin:0}
+
+  .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .btn{
+    appearance:none;border:1px solid var(--viewport-line);
+    background:#1b1f2b;color:#e8eaf0;border-radius:9px;
+    padding:8px 6px 7px;cursor:pointer;text-align:center;
+    transition:background .13s,border-color .13s,transform .08s;
+    display:flex;flex-direction:column;gap:2px;align-items:center;
+  }
+  .btn:hover{background:#232838;border-color:#414a5e}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--v4);outline-offset:2px}
+  .btn .bt{font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500}
+  .btn .bc{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#9aa0b2}
+  .btn.wide{grid-column:1 / -1}
+  .btn.identity{background:#181b24}
+  .btn .swatch{width:100%;height:3px;border-radius:2px;margin-top:3px;opacity:.85}
+
+  .panel-actions{display:flex;gap:8px;margin-top:2px}
+  .ctrl{
+    flex:1;appearance:none;border:1px solid var(--viewport-line);background:transparent;
+    color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;
+    font-size:12.5px;font-weight:500;cursor:pointer;letter-spacing:.02em;
+  }
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl:focus-visible{outline:2px solid var(--v4);outline-offset:2px}
+  .ctrl.on{background:#242a3a;color:#fff;border-color:#414a5e}
+
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+
+  /* ---------- data table (rotations list) ---------- */
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.4em 0}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:600;line-height:1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts{grid-template-columns:1fr} }
+
+  /* ---------- Cayley table ---------- */
+  .cayley-wrap{overflow-x:auto;margin:6px 0 2px;padding-bottom:4px}
+  table.cayley{border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:11px;margin:0 auto}
+  table.cayley th,table.cayley td{width:26px;height:26px;text-align:center;padding:0;border:1px solid var(--line)}
+  table.cayley th{background:var(--paper-2);color:var(--ink-soft);font-weight:500;position:relative}
+  table.cayley td .cell{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#fff;font-size:10.5px}
+  table.cayley td.hl{outline:2px solid var(--ink);outline-offset:-2px;z-index:2;position:relative}
+  .cayley-note{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px;min-height:1.4em}
+  .cayley-note b{color:var(--ink);font-weight:600}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:14px 0 2px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 1</b> · The Tetrahedron</div>
+    <h1>Turn it twelve ways and it never <span class="swap">looks</span> like it moved.</h1>
+    <p class="sub">A regular tetrahedron — the shape of a methane molecule, of a phosphorus atom's four bonds — hides a small, complete algebraic world. There are exactly twelve rigid rotations that leave it looking untouched. Together they are your first genuinely non-commutative group. Let's meet all twelve.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — WHAT COUNTS AS A SYMMETRY</span>
+    <h2>A symmetry is a motion that changes nothing</h2>
+    <p>Number the four corners <span class="vtok t1">1</span> <span class="vtok t2">2</span> <span class="vtok t3">3</span> <span class="vtok t4">4</span> and paint each one so we can follow it. A <em class="term">symmetry</em> of the tetrahedron is any rigid motion — a turn in space — that carries the solid exactly onto itself: every corner lands on a corner, every edge on an edge. If you closed your eyes while a friend performed one, you'd never know on opening them that anything happened. The colours, of course, give it away: they've been shuffled.</p>
+    <p>The whole point of doing this by example is that a symmetry is not an equation to be believed — it is something you can <em class="term">do</em>. So do it. Below is the tetrahedron. Drag the empty space to look around it, then press any of the twelve motions and watch the labels travel. Notice that no matter which buttons you press, or in what order, the glowing readout is always one of the same twelve arrangements. That "always one of twelve" is the first law of a group: <em class="term">closure</em>.</p>
+
+    <div class="module" id="module">
+      <div class="stage">
+        <div id="canvasHolder"></div>
+        <div class="hint">drag to orbit · scroll to zoom</div>
+        <div class="fallback" id="fallback">The 3-D view needs to load a graphics library from the web.<br>Check your connection, or open this file while online.</div>
+      </div>
+      <div class="panel" id="panel">
+        <div class="readout">
+          <div class="lbl">Current arrangement</div>
+          <div class="perm" id="curPerm">( )</div>
+          <div class="meta" id="curMeta"></div>
+        </div>
+
+        <div class="grp-title"><span class="cls-dot" style="background:#c7ccda"></span>Do nothing</div>
+        <div class="btn-grid">
+          <button class="btn identity wide" data-gen="e"><span class="bt">Identity</span><span class="bc">e</span></button>
+        </div>
+
+        <div class="grp-title"><span class="cls-dot" style="background:var(--v3)"></span>Spin about a corner · 120°</div>
+        <div class="btn-grid" id="vertexBtns"></div>
+
+        <div class="grp-title"><span class="cls-dot" style="background:var(--v2)"></span>Flip about an edge-pair · 180°</div>
+        <div class="btn-grid" id="edgeBtns"></div>
+
+        <div class="panel-actions">
+          <button class="ctrl" id="resetBtn">Reset</button>
+          <button class="ctrl on" id="axisBtn">Axis on hover</button>
+          <button class="ctrl on" id="faceBtn">Faces</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Each button is labelled with the permutation it performs, written in cycle notation. Hover a button to preview its axis of rotation; press it to compose that motion onto whatever you've already done.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — COUNTING THE TWELVE</span>
+    <h2>Where do exactly twelve come from?</h2>
+    <p>Every rotation must spin about some fixed axis, and only two kinds of axis run through a tetrahedron without tilting it. The first kind pierces a <em class="term">corner</em> and the centre of the face opposite. Spin a third of a turn (120°) and the three far corners cycle around; spin two-thirds (240°) and they cycle the other way. Four corners, two non-trivial spins each — that is <span class="num">8</span> rotations, and every one of them holds a single corner still.</p>
+    <p>The second kind of axis runs through the <em class="term">midpoints of two opposite edges</em>. A half-turn (180°) about it swaps the two corners on each edge. There are three such pairs of opposite edges, giving <span class="num">3</span> more rotations. Add the do-nothing <em class="term">identity</em> and the census is complete.</p>
+    <div class="facts">
+      <div><div class="n">1</div><div class="k">Identity · order 1</div></div>
+      <div><div class="n">8</div><div class="k">Corner spins · order 3</div></div>
+      <div><div class="n">3</div><div class="k">Edge flips · order 2</div></div>
+    </div>
+    <p><b>1 + 8 + 3 = 12.</b> The order of a rotation — how many times you repeat it to return home — is written above: the corner spins come back after three presses, the edge flips after two. Try it in the viewer: press one corner spin three times and the readout returns to the empty cycle.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — MOTIONS BECOME PERMUTATIONS</span>
+    <h2>The group is secretly A<sub style="font-size:.6em">4</sub></h2>
+    <p>Here is the bridge that makes the tetrahedron so useful in a first course. Because every symmetry just shuffles the four labelled corners, each of the twelve motions <em class="term">is</em> a permutation of the set <span class="mono">{1,2,3,4}</span>. Pressing a button and reading the cycle notation is literally translating geometry into algebra in real time.</p>
+    <p>But there are <span class="mono">4! = 24</span> permutations of four objects, and we found only twelve. Which twelve? Watch the cycle notation as you play: you only ever see 3-cycles like <span class="mono">(2 3 4)</span> and pairs of swaps like <span class="mono">(1 2)(3 4)</span> — never a lone swap like <span class="mono">(1 2)</span>. These are exactly the <em class="term">even</em> permutations, the ones built from an even number of transpositions. They form a group of their own, the <em class="term">alternating group</em> <span class="mono">A₄</span>, and the rotations of the tetrahedron are a perfect copy of it.</p>
+    <p>A single swap — picking up the solid and exchanging just two corners while fixing the others — cannot be done by any rotation. You'd have to reflect the tetrahedron in a mirror. Hold that thought; the missing twelve permutations return at the end.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — THE WHOLE GROUP AT ONCE</span>
+    <h2>Every product lives inside the table</h2>
+    <p>"Multiplying" two symmetries means doing one, then the other. Closure promised the result is again one of the twelve — so we can tabulate all <span class="mono">12 × 12 = 144</span> products in a single grid. Read row <span class="mono">g</span>, column <span class="mono">h</span>; the coloured cell is the single rotation equal to "do <span class="mono">h</span>, then <span class="mono">g</span>." Hover any cell to spell the product out.</p>
+    <div class="legend">
+      <span><i style="background:#c7ccda"></i> identity</span>
+      <span><i style="background:var(--v3)"></i> corner spin (left)</span>
+      <span><i style="background:#8f6bd6"></i> corner spin (right)</span>
+      <span><i style="background:var(--v2)"></i> edge flip</span>
+    </div>
+    <div class="cayley-wrap"><table class="cayley" id="cayley"></table></div>
+    <div class="cayley-note" id="cayleyNote">Hover a cell to read the product.</div>
+    <p style="margin-top:1.6em">Two things worth seeing in the grid. Each label appears exactly once in every row and every column — that is the promise of <em class="term">inverses</em> and the reason a group's table is a Latin square. And the table is <em class="term">not symmetric</em> across its diagonal: <span class="mono">g·h</span> and <span class="mono">h·g</span> often differ. Order matters here. This is your first <em class="term">non-abelian</em> group, and it is why the tetrahedron is a far richer example than a clock face.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — FAMILIES OF SAME-SHAPED MOTIONS</span>
+    <h2>Conjugacy classes: motions that are the same up to relabelling</h2>
+    <p>Two symmetries belong to the same <em class="term">conjugacy class</em> if one becomes the other when you view it from a rotated vantage point — formally, if <span class="mono">h = g·x·g⁻¹</span> for some symmetry <span class="mono">g</span>. Geometrically alike motions land together. For our group the twelve split into <em>four</em> classes, sized <span class="mono">1 + 3 + 4 + 4</span>:</p>
+    <div class="facts" style="grid-template-columns:repeat(4,1fr)">
+      <div><div class="n" style="color:#c7ccda">1</div><div class="k">identity</div></div>
+      <div><div class="n" style="color:var(--v2)">3</div><div class="k">edge flips</div></div>
+      <div><div class="n" style="color:var(--v3)">4</div><div class="k">120° left spins</div></div>
+      <div><div class="n" style="color:#8f6bd6">4</div><div class="k">120° right spins</div></div>
+    </div>
+    <p>The subtlety students love: the eight corner spins do <em>not</em> form one class of eight — they split into the four "left-handed" and four "right-handed" turns. Inside the rotation group there is no way to turn a clockwise 120° twist into a counter-clockwise one; doing so needs a mirror, which lives outside. These four numbers — <span class="mono">1, 3, 4, 4</span> — are not idle trivia. In the second half of the course they become the <em class="term">dimensions of the character table</em>: a group with four conjugacy classes has exactly four irreducible representations, and A₄'s are the doorway into the representation theory of Part 2.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="sec-tag">06 — THE OTHER HALF</span>
+    <h2>Add a mirror and you get all of S<sub style="font-size:.6em">4</sub></h2>
+    <p>We deliberately restricted ourselves to rotations — motions you can actually perform on a solid object without lifting it into a fourth dimension. Allow <em class="term">reflections</em> as well and six mirror planes appear, each swapping just two corners; combine mirrors with turns and six more "rotate-then-reflect" motions join in. The full symmetry group of the tetrahedron then has <span class="num">24</span> elements — every one of the <span class="mono">4! = 24</span> permutations of the corners — and it is the symmetric group <span class="mono">S₄</span> itself. Chemists know it as the point group <span class="mono">T_d</span>, the symmetry of methane.</p>
+    <p>So the tetrahedron quietly hands you two of the most important finite groups at once: its rotations are <span class="mono">A₄</span>, its full symmetries are <span class="mono">S₄</span>, and <span class="mono">A₄</span> sits inside <span class="mono">S₄</span> as exactly the half you can reach without a mirror. That relationship — a group and its index-two rotation subgroup — is the same one connecting proper and improper symmetry everywhere in physics and chemistry.</p>
+    <p style="color:var(--ink-soft);font-size:16px;margin-top:1.8em">Next in the series: the same treatment for the cube and octahedron (order 24, then 48), and then the leap from symmetries to their <em>representations</em> — how each of these motions can be written as a matrix, and what the character table is quietly counting.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 1 of Part 1</p>
+    <p>Rotate, compose, and reset as much as you like — every arrangement you can reach is one of the twelve elements of A₄. The 3-D view uses <a href="https://threejs.org">three.js</a>; the mathematics is computed live in your browser, not hard-coded, so the permutations and the animation can never disagree.</p>
+  </div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+/* ============================================================
+   TETRAHEDRAL ROTATION GROUP  —  live geometry + algebra
+   The permutations are computed from the actual 3-D rotations,
+   so the animation and the cycle notation are guaranteed to agree.
+   ============================================================ */
+
+let THREE, OrbitControls, threeOK = true;
+try {
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+} catch (err) {
+  threeOK = false;
+  document.getElementById('fallback').style.display = 'grid';
+  console.warn('three.js failed to load:', err);
+}
+
+/* ---------- 1. group data ---------- */
+// Tetrahedron corners = alternate cube corners, centred at origin.
+const V = [
+  [ 1,  1,  1],  // token 1  (index 0)
+  [ 1, -1, -1],  // token 2  (index 1)
+  [-1,  1, -1],  // token 3  (index 2)
+  [-1, -1,  1],  // token 4  (index 3)
+];
+const COLORS = ['#e24a3b', '#efa13c', '#2faf9e', '#6c7fe0'];
+
+function normalize(a){ const m = Math.hypot(a[0],a[1],a[2]); return [a[0]/m,a[1]/m,a[2]/m]; }
+
+// Rodrigues rotation of a point about a unit axis by angle th
+function rotatePoint(p, k, th){
+  const [x,y,z] = p, [kx,ky,kz] = k;
+  const c = Math.cos(th), s = Math.sin(th);
+  const dot = kx*x + ky*y + kz*z;
+  return [
+    x*c + (ky*z - kz*y)*s + kx*dot*(1-c),
+    y*c + (kz*x - kx*z)*s + ky*dot*(1-c),
+    z*c + (kx*y - ky*x)*s + kz*dot*(1-c),
+  ];
+}
+function nearestSite(p){
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < 4; i++){
+    const d = (p[0]-V[i][0])**2 + (p[1]-V[i][1])**2 + (p[2]-V[i][2])**2;
+    if (d < bd){ bd = d; best = i; }
+  }
+  return best;
+}
+// perm[i] = site that the token starting at site i lands on, under this rotation
+function permOf(axis, angle){
+  const k = normalize(axis);
+  return [0,1,2,3].map(i => nearestSite(rotatePoint(V[i], k, angle)));
+}
+
+const D120 = 2*Math.PI/3;
+
+// build the 12 generators (each with axis + angle + resulting permutation)
+const gens = [];
+gens.push({ id:'e', kind:'e', axis:[1,0,0], angle:0 });
+for (let i = 0; i < 4; i++){
+  gens.push({ id:`v${i}+`, kind:'v', fixed:i, axis:V[i], angle:+D120, dir:+1 });
+  gens.push({ id:`v${i}-`, kind:'v', fixed:i, axis:V[i], angle:-D120, dir:-1 });
+}
+gens.push({ id:'ex', kind:'edge', axis:[1,0,0], angle:Math.PI });
+gens.push({ id:'ey', kind:'edge', axis:[0,1,0], angle:Math.PI });
+gens.push({ id:'ez', kind:'edge', axis:[0,0,1], angle:Math.PI });
+gens.forEach(g => { g.perm = permOf(g.axis, g.angle); });
+
+/* ---------- 2. permutation utilities ---------- */
+function invert(p){ const r = [0,0,0,0]; p.forEach((v,i) => r[v] = i); return r; }
+function compose(a, b){ return a.map(i => b[i]); }              // "a then b" on sites
+function key(p){ return p.join(''); }
+function cycleNotation(p){
+  const seen = [false,false,false,false];
+  const cycles = [];
+  for (let i = 0; i < 4; i++){
+    if (seen[i] || p[i] === i) { seen[i] = true; continue; }
+    const c = [];
+    let j = i;
+    while (!seen[j]){ seen[j] = true; c.push(j+1); j = p[j]; }
+    if (c.length > 1) cycles.push('(' + c.join(' ') + ')');
+  }
+  return cycles.length ? cycles.join('') : '( )';
+}
+function orderOf(p){
+  const id = [0,1,2,3]; let cur = p.slice(), n = 1;
+  while (key(cur) !== key(id) && n < 12){ cur = compose(cur, p); n++; }
+  return n;
+}
+
+// full element list keyed by permutation, with names + class colour
+const CLASS_COLOR = { id:'#c7ccda', edge:'#efa13c', left:'#2faf9e', right:'#8f6bd6' };
+const CLASS_NAME  = { id:'identity', edge:'180° edge flip', left:'120° spin (left)', right:'120° spin (right)' };
+
+const byPerm = new Map();
+gens.forEach(g => {
+  let cls;
+  if (g.kind === 'e') cls = 'id';
+  else if (g.kind === 'edge') cls = 'edge';
+  else cls = g.dir > 0 ? 'left' : 'right';
+  byPerm.set(key(g.perm), {
+    perm: g.perm, cycle: cycleNotation(g.perm), order: orderOf(g.perm),
+    cls, gen: g
+  });
+});
+const elements = [...byPerm.values()];   // the 12 group elements
+
+/* ---------- 3. Cayley table ---------- */
+(function buildCayley(){
+  const order = [...elements].sort((a,b) => a.order - b.order || key(a.perm).localeCompare(key(b.perm)));
+  const idx = new Map(order.map((el,i) => [key(el.perm), i]));
+  const short = order.map((el,i) => i === 0 ? 'e' : String(i));
+  const table = document.getElementById('cayley');
+  const note  = document.getElementById('cayleyNote');
+
+  const head = document.createElement('tr');
+  head.appendChild(document.createElement('th'));
+  order.forEach((el,i) => { const th = document.createElement('th'); th.textContent = short[i]; head.appendChild(th); });
+  table.appendChild(head);
+
+  order.forEach((g,ri) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = short[ri]; tr.appendChild(th);
+    order.forEach((h,ci) => {
+      const prod = compose(h.perm, g.perm);        // "do h, then g"
+      const pel  = byPerm.get(key(prod));
+      const pi   = idx.get(key(prod));
+      const td = document.createElement('td');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.background = CLASS_COLOR[pel.cls];
+      cell.textContent = short[pi];
+      td.appendChild(cell);
+      td.addEventListener('mouseenter', () => {
+        note.innerHTML = `<b>${short[ri]}</b> · <b>${short[ci]}</b> &nbsp;=&nbsp; <b>${short[pi]}</b> &nbsp;&nbsp; ${g.cycle} · ${h.cycle} = ${pel.cycle}`;
+        table.querySelectorAll('td.hl').forEach(x => x.classList.remove('hl'));
+        td.classList.add('hl');
+      });
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+  table.addEventListener('mouseleave', () => { note.textContent = 'Hover a cell to read the product.'; table.querySelectorAll('td.hl').forEach(x => x.classList.remove('hl')); });
+})();
+
+/* ---------- 4. build the symmetry buttons ---------- */
+const vBox = document.getElementById('vertexBtns');
+const eBox = document.getElementById('edgeBtns');
+function makeBtn(gen, box){
+  const el = byPerm.get(key(gen.perm));
+  const b = document.createElement('button');
+  b.className = 'btn';
+  let title;
+  if (gen.kind === 'v') title = `Corner ${gen.fixed+1} ${gen.dir>0?'\u21bb':'\u21ba'}`;
+  else if (gen.kind === 'edge') title = `Edge flip`;
+  else title = 'Identity';
+  b.innerHTML = `<span class="bt">${title}</span><span class="bc">${el.cycle}</span>`;
+  const sw = document.createElement('span');
+  sw.className = 'swatch';
+  sw.style.background = CLASS_COLOR[el.cls];
+  b.appendChild(sw);
+  b.dataset.gid = gen.id;
+  b.addEventListener('click', () => applyGen(gen));
+  b.addEventListener('mouseenter', () => previewAxis(gen));
+  b.addEventListener('mouseleave', () => previewAxis(null));
+  box.appendChild(b);
+}
+gens.filter(g => g.kind === 'v').forEach(g => makeBtn(g, vBox));
+gens.filter(g => g.kind === 'edge').forEach(g => makeBtn(g, eBox));
+document.querySelector('[data-gen="e"]').addEventListener('click', () => applyGen(gens[0]));
+
+/* ---------- 5. state + readout ---------- */
+let content = [0,1,2,3];   // content[site] = token currently there
+function updateReadout(){
+  const tokenSite = invert(content);         // token -> its current site
+  const cyc = cycleNotation(tokenSite);
+  const el  = byPerm.get(key(tokenSite));
+  document.getElementById('curPerm').textContent = cyc;
+  document.getElementById('curMeta').innerHTML =
+    `<span class="cls-dot" style="background:${CLASS_COLOR[el.cls]}"></span>` +
+    `<b>${CLASS_NAME[el.cls]}</b> · order <b>${el.order}</b>`;
+}
+updateReadout();
+
+/* ============================================================
+   6. THREE.JS SCENE
+   ============================================================ */
+let scene, camera, renderer, controls, tetra, axisLine, animating = false;
+let showFaces = true, showAxisHover = true;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function makeLabelSprite(text){
+  const s = 128;
+  const cv = document.createElement('canvas'); cv.width = cv.height = s;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 74px "Space Grotesk", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, s/2, s/2 + 4);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(0.62, 0.62, 0.62);
+  return sp;
+}
+
+function initThree(){
+  const holder = document.getElementById('canvasHolder');
+  const w = holder.clientWidth || 600, h = holder.clientHeight || 440;
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(42, w/h, 0.1, 100);
+  camera.position.set(3.4, 2.4, 4.4);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  holder.appendChild(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minDistance = 3.2;
+  controls.maxDistance = 9;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.72));
+  const key1 = new THREE.DirectionalLight(0xffffff, 0.85); key1.position.set(5,6,4); scene.add(key1);
+  const key2 = new THREE.DirectionalLight(0x9fb0ff, 0.35); key2.position.set(-4,-2,-3); scene.add(key2);
+
+  tetra = new THREE.Group();
+  scene.add(tetra);
+
+  const pts = V.map(v => new THREE.Vector3(...v));
+
+  // faces
+  const faceIdx = [[0,1,2],[0,3,1],[0,2,3],[1,3,2]];
+  const geom = new THREE.BufferGeometry();
+  const pos = [];
+  faceIdx.forEach(f => f.forEach(i => pos.push(...V[i])));
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geom.computeVertexNormals();
+  const faceMat = new THREE.MeshStandardMaterial({
+    color: 0x9aa6c8, transparent: true, opacity: 0.16,
+    roughness: 0.55, metalness: 0.0, side: THREE.DoubleSide, depthWrite: false
+  });
+  const faceMesh = new THREE.Mesh(geom, faceMat);
+  faceMesh.name = 'faces';
+  tetra.add(faceMesh);
+
+  // edges
+  const edgePairs = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+  const egeom = new THREE.BufferGeometry();
+  const epos = [];
+  edgePairs.forEach(([a,b]) => { epos.push(...V[a], ...V[b]); });
+  egeom.setAttribute('position', new THREE.Float32BufferAttribute(epos, 3));
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xcfd6e6, transparent:true, opacity:0.6 });
+  tetra.add(new THREE.LineSegments(egeom, edgeMat));
+
+  // corner spheres + labels
+  const sgeom = new THREE.SphereGeometry(0.22, 32, 24);
+  for (let i = 0; i < 4; i++){
+    const mat = new THREE.MeshStandardMaterial({ color: COLORS[i], roughness: 0.35, metalness: 0.05 });
+    const sph = new THREE.Mesh(sgeom, mat);
+    sph.position.copy(pts[i]);
+    tetra.add(sph);
+    const lab = makeLabelSprite(String(i+1));
+    lab.position.copy(pts[i].clone().multiplyScalar(1.0));
+    lab.position.z += 0; // sprite always faces camera
+    tetra.add(lab);
+  }
+
+  // axis line (reused for hover preview + spin flash)
+  const ageom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+  axisLine = new THREE.Line(ageom, new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.0 }));
+  scene.add(axisLine);   // added to SCENE (fixed frame), not to the rotating tetra
+
+  window.addEventListener('resize', onResize);
+  renderer.setAnimationLoop(loop);
+}
+
+function onResize(){
+  const holder = document.getElementById('canvasHolder');
+  const w = holder.clientWidth, h = holder.clientHeight;
+  if (!w || !h) return;
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+/* ----- axis preview (in the FIXED frame, since symmetries act on space) ----- */
+function previewAxis(gen){
+  if (!threeOK || !axisLine) return;
+  if (!gen || gen.kind === 'e' || !showAxisHover){
+    axisLine.material.opacity = 0.0;
+    return;
+  }
+  const k = normalize(gen.axis);
+  const L = 2.7;
+  const a = new THREE.Vector3(k[0]*L, k[1]*L, k[2]*L);
+  const b = a.clone().multiplyScalar(-1);
+  axisLine.geometry.setFromPoints([a, b]);
+  axisLine.material.color.set(gen.kind === 'edge' ? 0xefa13c : 0x2faf9e);
+  axisLine.material.opacity = 0.85;
+}
+
+/* ----- applying a symmetry: animate rotation + update algebra ----- */
+let anim = null;
+function applyGen(gen){
+  if (!threeOK){ // still update the algebra even without 3-D
+    content = updateContent(gen); updateReadout(); return;
+  }
+  if (animating) return;
+  // update the algebra immediately (state is discrete)
+  content = updateContent(gen);
+  updateReadout();
+
+  if (gen.kind === 'e'){ // identity: nothing to animate
+    return;
+  }
+  // Rotate about the actual (fixed-space) symmetry axis by a growing angle.
+  // This is unambiguous for the 180 edge flips, where interpolating between
+  // start/end orientations would leave the rotation path undefined.
+  const k = normalize(gen.axis);
+  const axis = new THREE.Vector3(k[0], k[1], k[2]).normalize();
+  const qStart = tetra.quaternion.clone();
+
+  previewAxis(gen);  // flash the axis
+
+  animating = true;
+  anim = { mode:'spin', qStart, axis, angle: gen.angle, t0: performance.now(), dur: reduceMotion ? 1 : 640, gen };
+}
+
+function updateContent(gen){
+  const next = content.slice();
+  for (let i = 0; i < 4; i++) next[gen.perm[i]] = content[i];
+  return next;
+}
+
+function loop(){
+  if (anim){
+    const t = Math.min(1, (performance.now() - anim.t0) / anim.dur);
+    const e = t < 0.5 ? 2*t*t : 1 - (-2*t+2)**2/2;   // easeInOutQuad
+    if (anim.mode === 'spin'){
+      tetra.quaternion.copy(anim.qStart);
+      tetra.rotateOnWorldAxis(anim.axis, anim.angle * e);
+    } else { // 'slerp' — used only for the shortest-path Reset
+      tetra.quaternion.copy(anim.qStart).slerp(anim.qEnd, e);
+    }
+    if (axisLine) axisLine.material.opacity = 0.85 * (1 - e) * (anim.gen.kind !== 'e' ? 1 : 0);
+    if (t >= 1){
+      if (anim.mode === 'spin'){ tetra.quaternion.copy(anim.qStart); tetra.rotateOnWorldAxis(anim.axis, anim.angle); }
+      else { tetra.quaternion.copy(anim.qEnd); }
+      anim = null; animating = false;
+      if (axisLine) axisLine.material.opacity = 0;
+    }
+  }
+  if (controls) controls.update();
+  if (renderer) renderer.render(scene, camera);
+}
+
+/* ----- panel controls ----- */
+document.getElementById('resetBtn').addEventListener('click', () => {
+  content = [0,1,2,3]; updateReadout();
+  if (threeOK && tetra){
+    const qStart = tetra.quaternion.clone();
+    const qEnd = new THREE.Quaternion();
+    const t0 = performance.now();
+    animating = true;
+    anim = { mode:'slerp', qStart, qEnd, t0, dur: reduceMotion ? 1 : 500, gen:{kind:'e'} };
+  }
+});
+document.getElementById('axisBtn').addEventListener('click', (e) => {
+  showAxisHover = !showAxisHover; e.target.classList.toggle('on', showAxisHover);
+  if (!showAxisHover) previewAxis(null);
+});
+document.getElementById('faceBtn').addEventListener('click', (e) => {
+  showFaces = !showFaces; e.target.classList.toggle('on', showFaces);
+  if (threeOK && tetra){ const f = tetra.getObjectByName('faces'); if (f) f.visible = showFaces; }
+});
+
+if (threeOK) initThree();
+</script>
+</body>
+</html>
