@@ -14,8 +14,9 @@ The objective is to cover the following topics:
 4. [Octahedron](octahedral-symmetries.html)
 5. [Cyclic group](cyclic-groups.html)
 6. [Permutations](s4-permutations.html)
-7. Linear groups
-8. Group Actions and Conjugacy Classes 
+7. [Linear groups: Rotations]{linear-groups-rigid-motions.html}
+8. More linear groups
+9. Group Actions and Conjugacy Classes 
 
 #### Part 2:
 1. An example of a Representation.
