@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rigid Motions: SO(2), SE(2) and SO(3) — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code,.perm{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:20px;font-weight:600;margin:1.9em 0 .5em;letter-spacing:-.01em}
+  p{margin:0 0 1.05em}
+  a{color:var(--link);text-decoration:none;border-bottom:1px solid rgba(55,72,159,.3)}
+  a:hover{border-color:var(--link)}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,8vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:16ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  /* ---------- maths display ---------- */
+  .eq{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+      font-family:"JetBrains Mono",monospace;font-size:15px;margin:1.5em 0;line-height:1.4}
+  .eq .op{color:var(--ink-soft);font-size:17px}
+  .mat{display:inline-grid;gap:3px 16px;padding:8px 10px;position:relative;
+       font-family:"JetBrains Mono",monospace;font-size:14px;text-align:center;
+       border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:4px}
+  .mat.c1{grid-template-columns:auto}
+  .mat.c2{grid-template-columns:repeat(2,auto)}
+  .mat.c3{grid-template-columns:repeat(3,auto)}
+  .mat .z{color:#a9adb4}
+  .lbl-eq{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);text-align:center;margin:-.6em 0 1.4em}
+  .callout{border-left:3px solid var(--v3);background:var(--paper-2);padding:16px 20px;margin:1.5em 0;font-size:17px}
+  .callout b{font-family:"Space Grotesk",sans-serif}
+
+  /* ---------- interactive module shell ---------- */
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:10px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 340px}
+  @media (max-width:820px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 22%,#1b1f2b 0%,var(--viewport) 74%);min-height:430px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 14px 34px}
+  .stage svg{width:100%;height:auto;display:block}
+  .stage .cap{position:absolute;left:14px;right:14px;bottom:11px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;text-align:center;min-height:1.3em}
+  .stage .hint{position:absolute;left:14px;top:12px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:11px;opacity:.8}
+  #holdA,#holdB{width:100%;height:430px}
+  .fallback{display:none;place-items:center;text-align:center;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.7;padding:40px}
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:18px;color:#e8eaf0;display:flex;flex-direction:column;gap:13px}
+  @media (max-width:820px){ .panel{border-left:none;border-top:1px solid var(--viewport-line)} }
+  .plbl{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -4px;display:flex;justify-content:space-between;align-items:baseline}
+  .row-btns{display:flex;flex-wrap:wrap;gap:6px}
+  .cbtn{font-family:"JetBrains Mono",monospace;font-size:12px;border:1px solid var(--viewport-line);background:#1b1f2b;color:#e8eaf0;border-radius:8px;padding:6px 9px;cursor:pointer;min-width:32px;text-align:center}
+  .cbtn:hover{background:#232838;border-color:#414a5e}
+  .cbtn.on{background:#2a3346;border-color:var(--v3);color:#fff}
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl{flex:1;min-width:74px;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl.solid{background:#2a3346;color:#fff;border-color:#3a465e}
+  .ctrl.on{background:#242a3a;color:#fff;border-color:var(--v3)}
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:12px 14px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .rr{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#aeb4c4;line-height:1.65;margin-top:5px}
+  .readout .rr b{color:#fff;font-weight:600}
+  .yes{color:var(--v3);font-weight:700}.no{color:var(--v2);font-weight:700}
+
+  /* live matrix inside dark panel */
+  .dmat{display:inline-grid;gap:2px 12px;padding:7px 9px;margin:6px 0 2px;
+        font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#fff;text-align:right;
+        border-left:2px solid #4a5468;border-right:2px solid #4a5468;border-radius:4px}
+  .dmat.c2{grid-template-columns:repeat(2,minmax(50px,auto))}
+  .dmat.c3{grid-template-columns:repeat(3,minmax(46px,auto))}
+  .dmat .t{color:var(--v2)}
+  .dmat .r{color:var(--v3)}
+  .dmat .z{color:#5d6474}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#2a2f3a;border-radius:3px;outline:none;margin:7px 0 2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  .slval{font-family:"JetBrains Mono",monospace;color:#fff;font-weight:600;font-size:12px}
+
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.6em 0}
+  .facts.c4{grid-template-columns:repeat(4,1fr)}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:26px;font-weight:600;line-height:1.1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts,.facts.c4{grid-template-columns:1fr 1fr} }
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:14px 0 2px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 5</b> · Rigid Motions</div>
+    <h1>Slide it, turn it. There is <span class="swap">nothing else</span> you can do.</h1>
+    <p class="sub">Groups so far have been finite: twelve turns of a tetrahedron, twenty-four of a cube, <span class="mono">n</span> dots on a circle. Now the elements come in a continuum. Every motion of a rigid sheet of paper is a turn followed by a slide — two numbers for the slide, one for the turn — and once we write that as a matrix, the first of the <em class="term">linear groups</em> is standing in front of us. Then we lift the whole story into three dimensions and meet <span class="mono">SO(3)</span>.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<!-- ============================ 01 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — WHAT A RIGID MOTION CAN POSSIBLY BE</span>
+    <h2>Three nails and a sheet of paper</h2>
+    <p>Lay a sheet of paper on a table and move it however you like, as long as you never bend, stretch or tear it. Any such motion is an <em class="term">isometry</em>: the distance between any two dots of ink is exactly what it was before. That single condition is far more restrictive than it looks — and here is the intuition for why.</p>
+
+    <p>Hammer three nails through the sheet, not in a straight line. Rigidity says the three nail-holes keep their mutual distances. Now watch what those three points can do. Pick one of them, call it <span class="mono">O</span>. Wherever the sheet ends up, <span class="mono">O</span> has been carried to some new spot: that displacement is a <em class="term">translation</em>, and it costs two numbers, the shift <span class="mono">a</span> across and <span class="mono">b</span> up. Slide the whole sheet back so that <span class="mono">O</span> returns home. What freedom is left? The second nail must stay at its original distance from <span class="mono">O</span>, so it can only ride around a circle centred on <span class="mono">O</span> — that is a <em class="term">rotation</em>, and it costs one number, the angle <span class="mono">θ</span>. And once <span class="mono">O</span> and the second nail are pinned, the third has only two possible spots left, the two sides of the line through them: staying on its own side is what "you didn't flip the paper over" means.</p>
+
+    <p>Every ink dot is at a fixed distance from those first two nails, so every ink dot is now determined too. Nothing else can vary. Three numbers — <span class="mono">θ, a, b</span> — exhaust every rigid motion of the plane. Written the way we will use it:</p>
+
+    <div class="callout"><b>The whole classification.</b> Any distance-preserving motion of the plane is a rotation about the origin followed by a translation — <span class="mono">x ↦ R(θ)x + t</span> — possibly with a flip thrown in first. The flip-free ones are the <em class="term">rigid motions</em>, and they form a group: the special Euclidean group <span class="mono">SE(2)</span>.</div>
+
+    <p>The proof hiding behind the nails is short. Let <span class="mono">f</span> be an isometry, put <span class="mono">t = f(0)</span>, and consider <span class="mono">g(x) = f(x) − t</span>, which is an isometry fixing the origin. Preserving distances <em>and</em> the origin forces <span class="mono">g</span> to preserve lengths and angles — dot products, in other words — and a map preserving dot products is linear with orthonormal columns. So <span class="mono">g</span> is an <em class="term">orthogonal matrix</em>, and <span class="mono">f = translation ∘ orthogonal</span>. The orthogonal maps of the plane are exactly the rotations (which keep left-handedness) and the reflections (which reverse it). Turning the paper over is the reflection case; here we follow the rotations.</p>
+  </div>
+</section>
+
+<!-- ============================ 02 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — THE TWO INGREDIENTS AS MATRICES</span>
+    <h2>One matrix for the turn, one vector for the slide</h2>
+    <p>A rotation by <span class="mono">θ</span> about the origin sends the point <span class="mono">(1,0)</span> to <span class="mono">(cos θ, sin θ)</span> and <span class="mono">(0,1)</span> to <span class="mono">(−sin θ, cos θ)</span>. Those two images <em>are</em> the columns of the matrix — that is all a matrix ever is, a list of where the basis arrows go:</p>
+
+    <div class="eq">
+      <span>R(θ) =</span>
+      <span class="mat c2"><span>cos θ</span><span>−sin θ</span><span>sin θ</span><span>cos θ</span></span>
+      <span class="op">,</span>
+      <span>t =</span>
+      <span class="mat c1"><span>a</span><span>b</span></span>
+      <span class="op">,</span>
+      <span>motion:&nbsp; x ↦ R(θ) x + t</span>
+    </div>
+
+    <p>Two facts about <span class="mono">R(θ)</span> deserve names, because they are the definition of everything that follows. Its columns are unit vectors at right angles, which says precisely <span class="mono">R<sup>T</sup>R = I</span> — the matrix is <em class="term">orthogonal</em>. And its determinant is <span class="mono">cos²θ + sin²θ = 1</span>, the sign that it preserves handedness rather than mirroring it. The set of all such matrices is our first linear group:</p>
+
+    <div class="eq">
+      <span>SO(2) = { R ∈ M₂(ℝ) : R<sup>T</sup>R = I, det R = +1 }</span>
+    </div>
+
+    <h3>SO(2) <i>is</i> the circle — the dictionary, drawn</h3>
+    <p>Look again at the first column of <span class="mono">R(θ)</span>. It is the point <span class="mono">(cos θ, sin θ)</span> — a point on the unit circle. Every angle gives one rotation matrix and one circle point; different angles (mod <span class="mono">360°</span>) give different ones; and every circle point arises. So the map</p>
+
+    <div class="eq">
+      <span>Φ :</span><span class="mono">S¹ → SO(2)</span><span class="op">,</span>
+      <span class="mat c1"><span>cos θ</span><span>sin θ</span></span>
+      <span class="op">↦</span>
+      <span class="mat c2"><span>cos θ</span><span>−sin θ</span><span>sin θ</span><span>cos θ</span></span>
+    </div>
+    <p class="lbl-eq">the point <b>is</b> the first column; the second column is just that point turned a quarter-turn</p>
+
+    <p>is a bijection. To be an <em class="term">isomorphism of groups</em> it must also respect the two multiplications — and it does, which is the one computation on this page worth doing by hand. Multiplying circle points adds their angles (Module 0); multiplying the matrices gives, by the addition formulas for cosine and sine, exactly <span class="mono">R(θ)R(φ) = R(θ+φ)</span>. Same group, two costumes. In the figure the left panel and the right panel are the same statement written twice: drag <span class="mono">θ</span> and <span class="mono">φ</span> and watch the point <span class="mono">z·w</span> and the matrix product <span class="mono">R(θ)R(φ)</span> arrive at the same answer.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="svgIso" style="width:100%;max-width:560px"></div>
+        <div class="cap" id="capIso"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>Angle θ &nbsp;<span style="color:#2faf9e">■</span></span><span class="slval" id="lTh2">50°</span></div>
+        <input type="range" id="sTh2" min="0" max="359" step="1" value="50">
+        <div class="plbl"><span>Angle φ &nbsp;<span style="color:#6c7fe0">■</span></span><span class="slval" id="lPh2">80°</span></div>
+        <input type="range" id="sPh2" min="0" max="359" step="1" value="80">
+
+        <div class="readout">
+          <div class="lbl">R(θ) · R(φ) &nbsp;— multiplied out</div>
+          <div class="dmat c2" id="matProd"></div>
+          <div class="rr" id="chkIso"></div>
+        </div>
+        <div class="readout">
+          <div class="lbl">the same, in circle language</div>
+          <div class="rr" id="circIso"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl on" id="bSwap">swap the order</button>
+          <button class="ctrl solid" id="bSpin">Spin θ</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#2faf9e"></i> z = (cos θ, sin θ)</span>
+      <span><i style="background:#6c7fe0"></i> w = (cos φ, sin φ)</span>
+      <span><i style="background:#efa13c"></i> z·w ↔ R(θ)R(φ)</span>
+    </div>
+
+    <p>Because addition of angles does not care about order, the product lands in the same place whichever way round you take it — press <span class="mono">swap the order</span> and nothing moves. So <span class="mono">SO(2)</span> is <em class="term">abelian</em>: it is the circle group from Module 0 wearing matrices, <span class="mono">SO(2) ≅ S¹ ≅ U(1) ≅ ℝ/2πℤ</span>, one-dimensional and commutative, with each finite <span class="mono">ℤ/n</span> sitting inside it as the <span class="mono">n</span>-th roots of unity — the matrices <span class="mono">R(2πk/n)</span>. In the plane, turning commutes with turning. Remember that: it is the last time it will be true.</p>
+
+    <h3>Making the translation a matrix too</h3>
+    <p>The map <span class="mono">x ↦ x + t</span> is <em>not</em> linear: it moves the origin, and linear maps never do. The standard trick is to give every point a third coordinate equal to <span class="mono">1</span> — homogeneous coordinates — so the slide can hide in an extra column and the whole motion becomes one <span class="mono">3 × 3</span> matrix:</p>
+
+    <div class="eq">
+      <span class="mat c3"><span>cos θ</span><span>−sin θ</span><span>a</span><span>sin θ</span><span>cos θ</span><span>b</span><span class="z">0</span><span class="z">0</span><span class="z">1</span></span>
+      <span class="mat c1"><span>x</span><span>y</span><span class="z">1</span></span>
+      <span class="op">=</span>
+      <span class="mat c1"><span>x cos θ − y sin θ + a</span><span>x sin θ + y cos θ + b</span><span class="z">1</span></span>
+    </div>
+    <p class="lbl-eq">the rotation block, the slide column, and a row of padding that never changes</p>
+
+    <p>Now composition of motions is honest matrix multiplication, and multiplying the two blocks out gives the group law of <span class="mono">SE(2)</span>:</p>
+    <div class="eq"><span>(R₁, t₁) · (R₂, t₂) = ( R₁R₂ , &nbsp;R₁t₂ + t₁ )</span></div>
+    <p>Read the right-hand entry slowly: the second slide gets <em>rotated</em> by the first rotation before the two slides are added. That single twist is why <span class="mono">SE(2)</span> is not just "a circle times a plane" but a <em class="term">semidirect product</em> <span class="mono">SO(2) ⋉ ℝ²</span> — and why, in the visualiser below, doing the turn first and doing the slide first will land the flag in different places.</p>
+  </div>
+</section>
+
+<!-- ============================ 03 — 2D VISUALISER ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — THE VISUALISER · TURN AND SLIDE</span>
+    <h2>Choose θ, a, b — and watch the only three numbers there are</h2>
+    <p>The grey <span class="mono">F</span> is where the flag starts; the teal one is where the motion puts it. Drag the three sliders. The live matrix in the panel is exactly the <span class="mono">3 × 3</span> above with your numbers in it, and the distance check confirms what rigidity promises: the two marked corners never change their separation, no matter what you do.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="svg2d" style="width:100%;max-width:560px"></div>
+        <div class="cap" id="cap2d"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>Rotation angle θ</span><span class="slval" id="lTh">0°</span></div>
+        <input type="range" id="sTh" min="-180" max="180" step="1" value="55">
+        <div class="plbl"><span>Translation a (across)</span><span class="slval" id="lA">0.0</span></div>
+        <input type="range" id="sA" min="-4" max="4" step="0.05" value="-2.2">
+        <div class="plbl"><span>Translation b (up)</span><span class="slval" id="lB">0.0</span></div>
+        <input type="range" id="sB" min="-4" max="4" step="0.05" value="1.4">
+
+        <div class="plbl">Order of operations</div>
+        <div class="row-btns">
+          <button class="cbtn on" id="bRT">turn, then slide</button>
+          <button class="cbtn" id="bTR">slide, then turn</button>
+        </div>
+
+        <div class="readout">
+          <div class="lbl">the motion as a matrix</div>
+          <div class="dmat c3" id="mat2d"></div>
+          <div class="rr" id="chk2d"></div>
+        </div>
+
+        <div class="ctrls">
+          <button class="ctrl on" id="bCentre">show hidden centre</button>
+          <button class="ctrl" id="bGhost">show midway step</button>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="bPlay">Animate the motion</button>
+          <button class="ctrl" id="bReset">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#6b7183"></i> start</span>
+      <span><i style="background:var(--v4)"></i> midway step</span>
+      <span><i style="background:var(--v3)"></i> after the motion</span>
+      <span><i style="background:var(--v1)"></i> hidden centre of rotation</span>
+    </div>
+
+    <h3>The two surprises worth pausing on</h3>
+    <p><b>Order matters.</b> Press <span class="mono">slide, then turn</span> with the same three numbers and the flag lands somewhere else entirely. In symbols, <span class="mono">R(θ)x + t ≠ R(θ)(x + t)</span> — the second one equals <span class="mono">R(θ)x + R(θ)t</span>, and the slide has been rotated. Translations and rotations do not commute, exactly as the semidirect law predicted. (Translations do commute with each other; rotations about a common centre commute with each other. It is the mixture that misbehaves.)</p>
+
+    <p><b>The slide was an illusion.</b> Whenever <span class="mono">θ ≠ 0</span>, the red dot marks a point that the motion leaves exactly where it was — a fixed point. And a rigid motion with a fixed point and a rotation part is nothing but a <em>rotation about that point</em>. Press <span class="mono">Animate</span> and the flag swings about the red dot on a single circular arc: the "turn and then slide" you dialled in was secretly one plain turn about a different centre. Solving <span class="mono">R c + t = c</span> gives it:</p>
+    <div class="eq"><span>c = (I − R(θ))<sup>−1</sup> t</span><span class="op">,</span><span>which exists precisely when θ ≠ 0</span></div>
+    <p>So the elements of <span class="mono">SE(2)</span> come in exactly two kinds: <em class="term">rotations</em> about some centre (any <span class="mono">θ ≠ 0</span>), and <em class="term">pure translations</em> (<span class="mono">θ = 0</span>, no fixed point, the centre flies off to infinity). Set the angle slider to zero and watch the red dot escape the frame — that is the geometry of the algebra failing to be invertible.</p>
+
+    <div class="facts c4">
+      <div><div class="n">3</div><div class="k">parameters θ, a, b</div></div>
+      <div><div class="n">SO(2)⋉ℝ²</div><div class="k">the group SE(2)</div></div>
+      <div><div class="n">det = 1</div><div class="k">handedness kept</div></div>
+      <div><div class="n">non-abelian</div><div class="k">order matters</div></div>
+    </div>
+    <p class="caption">A footnote for completeness: allow the paper to be turned over and you also get reflections and glide-reflections, with <span class="mono">det = −1</span>. Those enlarge <span class="mono">SE(2)</span> to the full Euclidean group <span class="mono">E(2) = O(2) ⋉ ℝ²</span> — the group behind the seventeen wallpaper patterns.</p>
+  </div>
+</section>
+
+<!-- ============================ 04 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — ONE DIMENSION UP</span>
+    <h2>Same definition, three columns: the group SO(3)</h2>
+    <p>Nothing in the argument with the nails mentioned the number two. Repeat it in space: an isometry of <span class="mono">ℝ³</span> fixing the origin must send the three basis arrows to three unit vectors still at right angles to one another — an orthonormal frame. Stack those three images as columns and you have an <em class="term">orthogonal matrix</em>, and the group of them all is <span class="mono">O(3)</span>:</p>
+
+    <div class="eq">
+      <span>O(3) = { A : A<sup>T</sup>A = I }</span>
+      <span class="op">,</span>
+      <span>det A = ±1</span>
+      <span class="op">,</span>
+      <span>SO(3) = { A ∈ O(3) : det A = +1 }</span>
+    </div>
+
+    <p>The determinant can only be <span class="mono">±1</span> (take determinants of <span class="mono">A<sup>T</sup>A = I</span>), and the two signs are the two physical possibilities: <span class="mono">+1</span> means the frame is still right-handed — you got there by <em>turning</em> the object — while <span class="mono">−1</span> means the frame has been mirrored, which no motion through space can do to a rigid body. The <span class="mono">S</span> in <span class="mono">SO(3)</span> stands for that <em class="term">special</em> condition <span class="mono">det = +1</span>, and <span class="mono">SO(3)</span> is precisely the group of rotations of space. Every symmetry group in the last four modules — the tetrahedron's <span class="mono">A₄</span>, the cube's <span class="mono">S₄</span>, every <span class="mono">ℤ/n</span> and every dihedral <span class="mono">Dₙ</span> — was a finite subgroup of this one group.</p>
+
+    <div class="callout"><b>Euler's theorem (1775).</b> Every element of <span class="mono">SO(3)</span> is a rotation through some angle <span class="mono">α</span> about some single axis <span class="mono">k</span>. <i>Why:</i> a real <span class="mono">3 × 3</span> matrix has a real eigenvalue (odd degree), orthogonality forces every eigenvalue to have modulus 1, and <span class="mono">det = +1</span> forces one of them to be exactly <span class="mono">+1</span>. Its eigenvector is a direction the matrix does not move — the axis. Whatever tumbling you do to a ball, some diameter of it has come back to where it started.</div>
+
+    <p>So a rotation of space also needs three numbers: two to point the axis <span class="mono">k</span> (a direction on the sphere) and one for the angle <span class="mono">α</span> around it. Write the axis as a unit vector <span class="mono">k = (k₁,k₂,k₃)</span>; the matrix is given by <em class="term">Rodrigues' formula</em>, which is just "decompose every vector into its part along the axis, which is untouched, and its part perpendicular to the axis, which gets turned by <span class="mono">α</span> inside that plane":</p>
+
+    <div class="eq">
+      <span>R(k, α) = I·cos α &nbsp;+&nbsp; (1 − cos α)·k k<sup>T</sup> &nbsp;+&nbsp; sin α ·</span>
+      <span class="mat c3"><span class="z">0</span><span>−k₃</span><span>k₂</span><span>k₃</span><span class="z">0</span><span>−k₁</span><span>−k₂</span><span>k₁</span><span class="z">0</span></span>
+    </div>
+    <p class="lbl-eq">the last matrix is the cross-product-with-k operator; put k = (0,0,1) and the whole thing collapses to R(θ) in the top-left corner</p>
+
+    <p>One more identity to read off the visualiser: taking the trace of Rodrigues' formula gives <span class="mono">tr R = 1 + 2 cos α</span>. The angle of a rotation is written on the diagonal of its matrix, no matter which axis it turns about — a fact that will reappear in Part 2 as the <em class="term">character</em> of a representation.</p>
+  </div>
+</section>
+
+<!-- ============================ 05 — SO(3) VISUALISER ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — THE VISUALISER · AXIS AND ANGLE</span>
+    <h2>Point the axis, choose the angle, read the matrix</h2>
+    <p>Aim the red axis anywhere on the sphere with the two direction sliders, then turn the block through <span class="mono">α</span>. The ghost frame shows where it started; the yellow dot traces one marked corner, and it always rides a circle in the plane perpendicular to the axis. The matrix in the panel is Rodrigues' formula evaluated at your numbers — with the two defining checks, <span class="mono">R<sup>T</sup>R = I</span> and <span class="mono">det = +1</span>, recomputed live from the actual numbers on screen.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="holdA"></div>
+        <div class="hint">drag to orbit · scroll to zoom</div>
+        <div class="fallback" id="fbA">The 3-D view needs to load a graphics library from the web.<br>Check your connection, or open this file while online.</div>
+        <div class="cap" id="capA"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>Axis · azimuth φ</span><span class="slval" id="lPhi">45°</span></div>
+        <input type="range" id="sPhi" min="0" max="360" step="1" value="45">
+        <div class="plbl"><span>Axis · tilt from vertical</span><span class="slval" id="lPol">55°</span></div>
+        <input type="range" id="sPol" min="0" max="180" step="1" value="55">
+        <div class="plbl"><span>Rotation angle α</span><span class="slval" id="lAlp">90°</span></div>
+        <input type="range" id="sAlp" min="0" max="360" step="1" value="90">
+
+        <div class="plbl">Standard axes</div>
+        <div class="row-btns">
+          <button class="cbtn" data-ax="x">x</button>
+          <button class="cbtn" data-ax="y">y</button>
+          <button class="cbtn" data-ax="z">z</button>
+          <button class="cbtn" data-ax="d">(1,1,1)</button>
+        </div>
+
+        <div class="readout">
+          <div class="lbl">R(k, α)</div>
+          <div class="dmat c3" id="matA"></div>
+          <div class="rr" id="chkA"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="bPlayA">Sweep 0 → α</button>
+          <button class="ctrl" id="bGhostA">ghost on/off</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Notice that <span class="mono">α = 0</span> and <span class="mono">α = 360°</span> give the same matrix, whatever the axis — and that reversing the axis while negating the angle also gives the same matrix. <span class="mono">SO(3)</span> is a curved, compact three-dimensional space, and it is not simply the sphere of axes times a circle of angles.</p>
+  </div>
+</section>
+
+<!-- ============================ 06 — NON-COMMUTATIVITY ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">06 — THE PRICE OF THE THIRD DIMENSION</span>
+    <h2>Two quarter-turns, two orders, two different worlds</h2>
+    <p>In the plane, rotations about the origin commuted: adding angles does not care about order, and <span class="mono">SO(2)</span> is abelian. In space that comfort disappears immediately, and you do not need a proof — you need two blocks. Both start identically. The left one performs <span class="mono">A</span> and then <span class="mono">B</span>; the right one performs <span class="mono">B</span> and then <span class="mono">A</span>. Pick the moves and press play.</p>
+
+    <div class="module">
+      <div class="stage">
+        <div id="holdB"></div>
+        <div class="hint">drag to orbit · both cubes share one camera</div>
+        <div class="fallback" id="fbB">The 3-D view needs to load a graphics library from the web.<br>Check your connection, or open this file while online.</div>
+        <div class="cap" id="capB"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl">First move · A</div>
+        <div class="row-btns" id="rowA"></div>
+        <div class="plbl">Second move · B</div>
+        <div class="row-btns" id="rowB"></div>
+
+        <div class="readout">
+          <div class="lbl">left cube · B·A</div>
+          <div class="dmat c3" id="matBA"></div>
+          <div class="rr" id="axBA"></div>
+        </div>
+        <div class="readout">
+          <div class="lbl">right cube · A·B</div>
+          <div class="dmat c3" id="matAB"></div>
+          <div class="rr" id="axAB"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="bPlayB">Play both</button>
+          <button class="ctrl" id="bResetB">Reset</button>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Matrices are written in the order they act: <span class="mono">B·A</span> means "do A first, then B". The two products are genuine matrices, and you can see they differ entry by entry.</p>
+
+    <h3>Both answers are still single turns</h3>
+    <p>Look at the axis-and-angle line under each matrix. Take <span class="mono">A = x⁺90°</span> and <span class="mono">B = z⁺90°</span>. Doing <span class="mono">A</span> then <span class="mono">B</span> gives a single <span class="mono">120°</span> turn about the body diagonal <span class="mono">(1,1,1)</span>; doing them in the other order gives a <span class="mono">120°</span> turn about the <em>different</em> diagonal <span class="mono">(1,−1,1)</span>. Euler's theorem is still keeping its promise — every product is a rotation about <em>some</em> axis — but the axis it hands you depends on the order, and that is exactly what non-commutativity looks like when you can see it.</p>
+
+    <p>The cube has four body diagonals and these <span class="mono">120°</span> turns permute them; that is the entire content of "the rotation group of the cube is <span class="mono">S₄</span>", which we proved combinatorially two modules ago. Here the same statement appears as a fact about matrices: the twenty-four rotations of the cube form a finite subgroup of <span class="mono">SO(3)</span>, and they are the matrices with a single <span class="mono">±1</span> in each row and column and determinant <span class="mono">+1</span> — the <em class="term">signed permutation matrices</em>. Finite groups have been living inside the continuous one all along.</p>
+
+    <div class="facts">
+      <div><div class="n">tr R = 1 + 2cos α</div><div class="k">the angle, from the diagonal</div></div>
+      <div><div class="n">3</div><div class="k">dimensions: 2 for axis, 1 for angle</div></div>
+      <div><div class="n">ℤ/n, Dₙ, A₄, S₄, A₅</div><div class="k">every finite subgroup of SO(3)</div></div>
+    </div>
+    <p class="caption">That last box is a real theorem, and a beautiful one: those five families are <em>all</em> the finite subgroups of <span class="mono">SO(3)</span> there are. The tetrahedron, cube/octahedron and dodecahedron/icosahedron are not merely nice examples — they are the complete list of exceptions.</p>
+  </div>
+</section>
+
+<!-- ============================ 07 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">07 — WHERE THIS IS GOING</span>
+    <h2>Orthogonal was only one condition among many</h2>
+    <p>Look at what we actually did. We took a set of matrices, imposed a condition that survives multiplication and inversion — <span class="mono">R<sup>T</sup>R = I</span>, <span class="mono">det = +1</span> — and got a group. Change the condition and you change the group, but never the method. That is the whole idea of a <em class="term">linear group</em>: a group whose elements <em>are</em> matrices and whose multiplication <em>is</em> matrix multiplication.</p>
+    <div class="eq" style="font-size:14px">
+      <span class="mono">GL(2,ℝ)</span><span class="op">·</span><span class="mono">SL(2,ℝ)</span><span class="op">·</span><span class="mono">SL(2,ℤ)</span><span class="op">·</span><span class="mono">O(n)</span><span class="op">·</span><span class="mono">SU(2)</span><span class="op">·</span><span class="mono">SU(3)</span>
+    </div>
+    <p>Drop every condition but invertibility and you get <span class="mono">GL(2,ℝ)</span>, all invertible <span class="mono">2 × 2</span> matrices — shears and stretches allowed, distances thrown away. Keep only <span class="mono">det = 1</span> and you get <span class="mono">SL(2,ℝ)</span>, the area-preserving maps. Insist further that the entries be integers and you get <span class="mono">SL(2,ℤ)</span>, a discrete group with a startlingly rich geometry. Replace real entries by complex ones and orthogonality by its complex cousin <span class="mono">U<sup>†</sup>U = I</span>, and you get <span class="mono">SU(2)</span> — the double cover of the <span class="mono">SO(3)</span> you just played with, and the reason a spin-½ particle must be turned through <span class="mono">720°</span> to come home — and <span class="mono">SU(3)</span>, the group of the strong force.</p>
+    <p style="color:var(--ink-soft);font-size:16px;margin-top:1.8em">Next module: those groups, one visualiser at a time — starting with what a general <span class="mono">2 × 2</span> matrix does to a square, and what the determinant is really measuring.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 5 of Part 1 · Rigid Motions</p>
+    <p>Every matrix on this page is computed live from the motion you dial in, and every check — <span class="mono">R<sup>T</sup>R = I</span>, <span class="mono">det = 1</span>, the preserved distance, the recovered axis — is evaluated numerically from those same entries. The picture and the algebra cannot disagree.</p>
+  </div>
+</footer>
+
+<!-- ============================================================
+     PART 0 — the dictionary  S¹ ≅ SO(2)   (pure SVG)
+     ============================================================ -->
+<script>
+(function(){
+  const W=560,H=380, CX=150, CY=190, R=112;
+  const host=document.getElementById('svgIso'), cap=document.getElementById('capIso');
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const f=(v,d=2)=>{ let s=(Math.abs(v)<5e-3?0:v).toFixed(d); if(s==='-0.00')s='0.00'; return s; };
+  const rad=d=>d*Math.PI/180;
+  const px=a=>CX+R*Math.cos(a), py=a=>CY-R*Math.sin(a);
+  const S={th:50, ph:80, order:'TP'};   // TP = R(θ)R(φ) ; PT = R(φ)R(θ)
+  let raf=null;
+
+  function arc(r,a0,a1,col,w){
+    const large=Math.abs(a1-a0)>Math.PI?1:0, sweep=(a1>a0)?0:1;
+    return `<path d="M ${CX+r*Math.cos(a0)} ${CY-r*Math.sin(a0)} A ${r} ${r} 0 ${large} ${sweep} ${CX+r*Math.cos(a1)} ${CY-r*Math.sin(a1)}" fill="none" stroke="${col}" stroke-width="${w}" opacity=".9"/>`;
+  }
+  const mult=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0], A[0][0]*B[0][1]+A[0][1]*B[1][1]],
+                     [A[1][0]*B[0][0]+A[1][1]*B[1][0], A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+  const Rm=t=>[[Math.cos(t),-Math.sin(t)],[Math.sin(t),Math.cos(t)]];
+
+  function draw(){
+    const th=rad(S.th), ph=rad(S.ph), su=th+ph;
+    const c=Math.cos(th), s=Math.sin(th);
+    let g='';
+    /* --- left: the circle --- */
+    g+=`<line x1="${CX-R-24}" y1="${CY}" x2="${CX+R+24}" y2="${CY}" stroke="#3c4356" stroke-width="1"/>`;
+    g+=`<line x1="${CX}" y1="${CY-R-24}" x2="${CX}" y2="${CY+R+24}" stroke="#3c4356" stroke-width="1"/>`;
+    g+=`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#4b5468" stroke-width="1.6"/>`;
+    g+=`<text x="${CX+R+6}" y="${CY-8}" fill="#6b7183" font-family="JetBrains Mono" font-size="11">1</text>`;
+    g+=`<text x="${CX-16}" y="${CY+16}" fill="#6b7183" font-family="JetBrains Mono" font-size="11">O</text>`;
+    g+=`<text x="${CX-R-4}" y="${CY-R-12}" fill="#8a90a0" font-family="JetBrains Mono" font-size="12">S¹</text>`;
+
+    /* angle arcs: θ from 0, then φ stacked on top of θ */
+    g+=arc(40,0,th,'#2faf9e',2.5);
+    g+=arc(54,th,su,'#6c7fe0',2.5);
+    g+=`<text x="${CX+50*Math.cos(th/2)}" y="${CY-50*Math.sin(th/2)+4}" fill="#2faf9e" font-family="JetBrains Mono" font-size="12">θ</text>`;
+    g+=`<text x="${CX+66*Math.cos((th+su)/2)}" y="${CY-66*Math.sin((th+su)/2)+4}" fill="#6c7fe0" font-family="JetBrains Mono" font-size="12">φ</text>`;
+
+    /* dashed guides showing that the point's coordinates are (cos θ, sin θ) */
+    g+=`<line x1="${px(th)}" y1="${py(th)}" x2="${px(th)}" y2="${CY}" stroke="#2faf9e" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+    g+=`<line x1="${px(th)}" y1="${py(th)}" x2="${CX}" y2="${py(th)}" stroke="#2faf9e" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+    g+=`<text x="${(CX+px(th))/2-14}" y="${CY+16}" fill="#2faf9e" font-family="JetBrains Mono" font-size="10.5">cos θ</text>`;
+    g+=`<text x="${CX-40}" y="${(CY+py(th))/2+4}" fill="#2faf9e" font-family="JetBrains Mono" font-size="10.5">sin θ</text>`;
+
+    /* the three points */
+    const spoke=(a,col,w)=>`<line x1="${CX}" y1="${CY}" x2="${px(a)}" y2="${py(a)}" stroke="${col}" stroke-width="${w}"/>`;
+    g+=spoke(su,'#efa13c',2.6)+spoke(th,'#2faf9e',2)+spoke(ph,'#6c7fe0',2);
+    g+=`<circle cx="${px(ph)}" cy="${py(ph)}" r="5" fill="#6c7fe0"/><text x="${px(ph)+8}" y="${py(ph)-6}" fill="#6c7fe0" font-family="JetBrains Mono" font-size="12">w</text>`;
+    g+=`<circle cx="${px(su)}" cy="${py(su)}" r="6" fill="#efa13c"/><text x="${px(su)+8}" y="${py(su)-6}" fill="#efa13c" font-family="JetBrains Mono" font-size="12">z·w</text>`;
+    g+=`<circle cx="${px(th)}" cy="${py(th)}" r="5.5" fill="#2faf9e"/><text x="${px(th)+8}" y="${py(th)-6}" fill="#2faf9e" font-family="JetBrains Mono" font-size="12">z</text>`;
+
+    /* --- middle: the map --- */
+    g+=`<line x1="290" y1="190" x2="345" y2="190" stroke="#8a90a0" stroke-width="1.6" marker-end="url(#ar)"/>`;
+    g+=`<text x="300" y="178" fill="#e8eaf0" font-family="JetBrains Mono" font-size="13">Φ</text>`;
+    g+=`<text x="288" y="212" fill="#8a90a0" font-family="JetBrains Mono" font-size="11">≅</text>`;
+
+    /* --- right: the matrix, first column = the point --- */
+    const L=372, T=140, Wm=160, Hm=100;
+    g+=`<path d="M ${L+8} ${T} L ${L} ${T} L ${L} ${T+Hm} L ${L+8} ${T+Hm}" fill="none" stroke="#c7ccda" stroke-width="2"/>`;
+    g+=`<path d="M ${L+Wm-8} ${T} L ${L+Wm} ${T} L ${L+Wm} ${T+Hm} L ${L+Wm-8} ${T+Hm}" fill="none" stroke="#c7ccda" stroke-width="2"/>`;
+    g+=`<rect x="${L+10}" y="${T+6}" width="66" height="${Hm-12}" fill="#2faf9e" opacity=".12" rx="4"/>`;
+    const cell=(x,y,txt,col)=>`<text x="${x}" y="${y}" fill="${col}" font-family="JetBrains Mono" font-size="14" text-anchor="middle">${txt}</text>`;
+    g+=cell(L+43,T+34,f(c),'#2faf9e')+cell(L+118,T+34,f(-s),'#c7ccda');
+    g+=cell(L+43,T+76,f(s),'#2faf9e')+cell(L+118,T+76,f(c),'#c7ccda');
+    g+=`<text x="${L+Wm/2}" y="${T-16}" fill="#e8eaf0" font-family="JetBrains Mono" font-size="13" text-anchor="middle">R(θ) ∈ SO(2)</text>`;
+    g+=`<text x="${L+43}" y="${T+Hm+20}" fill="#2faf9e" font-family="JetBrains Mono" font-size="10.5" text-anchor="middle">the point z</text>`;
+    g+=`<text x="${L+118}" y="${T+Hm+20}" fill="#8a90a0" font-family="JetBrains Mono" font-size="10.5" text-anchor="middle">z turned 90°</text>`;
+
+    const defs=`<defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#8a90a0"/></marker></defs>`;
+    host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${defs}${g}</svg>`;
+
+    /* --- panel --- */
+    const A=Rm(th), B=Rm(ph);
+    const P = S.order==='TP' ? mult(A,B) : mult(B,A);
+    const Rs = Rm(su);
+    document.getElementById('matProd').innerHTML=
+      P.flat().map(v=>`<span class="${Math.abs(v)<5e-3?'z':'r'}">${f(v)}</span>`).join('');
+    const err=Math.max(...P.flat().map((v,i)=>Math.abs(v-Rs.flat()[i])));
+    const sum=((S.th+S.ph)%360+360)%360;
+    document.getElementById('matProd').previousElementSibling.textContent =
+      (S.order==='TP'?'R(θ) · R(φ)':'R(φ) · R(θ)')+'  — multiplied out';
+    document.getElementById('chkIso').innerHTML=
+      `= R(θ+φ) = R(<b>${sum}°</b>) <span class="${err<1e-9?'yes':'no'}">${err<1e-9?'✓':'✗'}</span><br>`+
+      `R(θ)R(φ) − R(φ)R(θ) = <b>0</b> <span class="yes">✓</span> → <b>abelian</b>`;
+    document.getElementById('circIso').innerHTML=
+      `z = (<b>${f(c)}</b>, <b>${f(s)}</b>) at ${S.th}°<br>`+
+      `w = (${f(Math.cos(ph))}, ${f(Math.sin(ph))}) at ${S.ph}°<br>`+
+      `z·w = (<b>${f(Math.cos(su))}</b>, <b>${f(Math.sin(su))}</b>) at ${sum}°<br>`+
+      `— and that is the first column above.`;
+    cap.textContent=`Φ(z)·Φ(w) = R(${S.th}°)·R(${S.ph}°) = R(${sum}°) = Φ(z·w)`;
+  }
+
+  const hook=(id,lab,key)=>{
+    const el=document.getElementById(id);
+    const go=()=>{ S[key]=+el.value; document.getElementById(lab).textContent=el.value+'°'; draw(); };
+    el.addEventListener('input',()=>{ if(raf){cancelAnimationFrame(raf); raf=null;} go(); }); go();
+  };
+  hook('sTh2','lTh2','th'); hook('sPh2','lPh2','ph');
+
+  const bS=document.getElementById('bSwap');
+  bS.onclick=()=>{ S.order = S.order==='TP'?'PT':'TP'; bS.classList.toggle('on', S.order==='TP'); draw(); };
+
+  document.getElementById('bSpin').onclick=()=>{
+    if(raf){ cancelAnimationFrame(raf); raf=null; return; }
+    if(reduce) return;
+    const t0=performance.now(), start=S.th;
+    const step=now=>{
+      const v=Math.round(start+((now-t0)/16))%360;
+      const el=document.getElementById('sTh2'); el.value=v; S.th=v;
+      document.getElementById('lTh2').textContent=v+'°';
+      draw();
+      raf=requestAnimationFrame(step);
+    };
+    raf=requestAnimationFrame(step);
+  };
+  draw();
+})();
+</script>
+
+<!-- ============================================================
+     PART 1 — the plane: SE(2) visualiser (pure SVG)
+     ============================================================ -->
+<script>
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const W=560, H=420, S=40, OX=W/2, OY=H/2;          // 40 px per unit
+  const host=document.getElementById('svg2d');
+  const cap=document.getElementById('cap2d');
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const sx=x=>OX+S*x, sy=y=>OY-S*y;
+  const fmt=(v,d=2)=>{ let s=(Math.abs(v)<5e-4?0:v).toFixed(d); if(s==='-0.00'||s==='-0.0')s=s.slice(1); return s; };
+
+  /* the letter F — asymmetric, so a flip could never be mistaken for a turn */
+  const RAW=[[0,0],[0,3],[2,3],[2,2.4],[0.7,2.4],[0.7,1.9],[1.7,1.9],[1.7,1.3],[0.7,1.3],[0.7,0]];
+  const FLAG=RAW.map(([x,y])=>[0.85+0.62*x, 0.25+0.62*y]);
+  const MARK=[0,2];                                   // two corners for the distance check
+
+  const st={th:55, a:-2.2, b:1.4, order:'RT', centre:true, ghost:false, s:1};
+  let anim=null;
+
+  const rot=(p,th)=>{const c=Math.cos(th),s=Math.sin(th);return [c*p[0]-s*p[1], s*p[0]+c*p[1]];};
+  const add=(p,q)=>[p[0]+q[0],p[1]+q[1]];
+  const sub=(p,q)=>[p[0]-q[0],p[1]-q[1]];
+  const dist=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);
+
+  /* the final map, for the chosen order */
+  function apply(p,th,t,order){
+    return order==='RT' ? add(rot(p,th),t) : rot(add(p,t),th);
+  }
+  /* the same motion written as x -> Rx + tEff  (so both orders share one formula) */
+  function effT(th,t,order){ return order==='RT' ? t : rot(t,th); }
+  /* midway pose: after the first of the two operations only */
+  function midway(p,th,t,order){ return order==='RT' ? rot(p,th) : add(p,t); }
+
+  /* solve (I - R)c = t.   I-R = [[1-c, s], [-s, 1-c]],  det = 2(1-c)  */
+  function centreOf(th,tE){
+    const c=Math.cos(th), s=Math.sin(th), det=2*(1-c);
+    if(Math.abs(det)<1e-6) return null;               // theta = 0: no fixed point
+    return [ ((1-c)*tE[0] - s*tE[1])/det , ( s*tE[0] + (1-c)*tE[1])/det ];
+  }
+
+  function poly(pts,fill,stroke,extra=''){
+    return `<polygon points="${pts.map(p=>sx(p[0])+','+sy(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round" ${extra}/>`;
+  }
+
+  function draw(){
+    const th=st.th*Math.PI/180, t=[st.a,st.b];
+    const tE=effT(th,t,st.order);
+    const C=centreOf(th,tE);
+    const u=st.s;                                     // animation parameter 0..1
+
+    /* interpolated pose: a genuine rotation about C (or a straight slide if theta=0) */
+    let pose;
+    if(C){ const ang=th*u; pose=p=>add(C, rot(sub(p,C), ang)); }
+    else { pose=p=>add(p,[tE[0]*u, tE[1]*u]); }
+
+    const now=FLAG.map(pose);
+    const fin=FLAG.map(p=>apply(p,th,t,st.order));
+    const mid=FLAG.map(p=>midway(p,th,t,st.order));
+
+    let g='';
+    /* grid */
+    for(let i=-7;i<=7;i++){
+      g+=`<line x1="${sx(i)}" y1="0" x2="${sx(i)}" y2="${H}" stroke="#232838" stroke-width="1"/>`;
+      g+=`<line x1="0" y1="${sy(i)}" x2="${W}" y2="${sy(i)}" stroke="#232838" stroke-width="1"/>`;
+    }
+    g+=`<line x1="0" y1="${OY}" x2="${W}" y2="${OY}" stroke="#3c4356" stroke-width="1.5"/>`;
+    g+=`<line x1="${OX}" y1="0" x2="${OX}" y2="${H}" stroke="#3c4356" stroke-width="1.5"/>`;
+    g+=`<circle cx="${OX}" cy="${OY}" r="3" fill="#8a90a0"/>`;
+    g+=`<text x="${OX+7}" y="${OY+16}" fill="#6b7183" font-family="JetBrains Mono" font-size="11">O</text>`;
+
+    /* start pose (ghost) */
+    g+=poly(FLAG,'rgba(107,113,131,.16)','#6b7183','stroke-dasharray="4 3"');
+
+    /* midway pose */
+    if(st.ghost) g+=poly(mid,'rgba(108,127,224,.14)','#6c7fe0','stroke-dasharray="5 4"');
+
+    /* the translation arrow, drawn from O */
+    g+=`<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 z" fill="#efa13c"/></marker></defs>`;
+    if(Math.hypot(tE[0],tE[1])>0.05)
+      g+=`<line x1="${OX}" y1="${OY}" x2="${sx(tE[0])}" y2="${sy(tE[1])}" stroke="#efa13c" stroke-width="2" marker-end="url(#ah)" opacity=".85"/>`;
+
+    /* hidden centre + the arc that one corner sweeps */
+    if(st.centre && C){
+      const p0=FLAG[MARK[0]], r=dist(p0,C);
+      const a0=Math.atan2(p0[1]-C[1], p0[0]-C[0]);
+      const a1=a0+th;
+      const large=Math.abs(th)>Math.PI?1:0, sweep=th>0?0:1;
+      g+=`<circle cx="${sx(C[0])}" cy="${sy(C[1])}" r="${r*S}" fill="none" stroke="#e24a3b" stroke-width="1" stroke-dasharray="3 4" opacity=".45"/>`;
+      g+=`<path d="M ${sx(C[0]+r*Math.cos(a0))} ${sy(C[1]+r*Math.sin(a0))} A ${r*S} ${r*S} 0 ${large} ${sweep} ${sx(C[0]+r*Math.cos(a1))} ${sy(C[1]+r*Math.sin(a1))}" fill="none" stroke="#e24a3b" stroke-width="2.5" opacity=".9"/>`;
+      g+=`<circle cx="${sx(C[0])}" cy="${sy(C[1])}" r="5" fill="#e24a3b"/>`;
+      g+=`<text x="${sx(C[0])+9}" y="${sy(C[1])-8}" fill="#e24a3b" font-family="JetBrains Mono" font-size="12">c</text>`;
+    }
+
+    /* moving / final pose */
+    g+=poly(now,'rgba(47,175,158,.22)','#2faf9e');
+
+    /* the two marked corners, before and after */
+    MARK.forEach((i,k)=>{
+      const col=k?'#efa13c':'#2faf9e';
+      g+=`<circle cx="${sx(FLAG[i][0])}" cy="${sy(FLAG[i][1])}" r="4" fill="none" stroke="${col}" stroke-width="2"/>`;
+      g+=`<circle cx="${sx(now[i][0])}" cy="${sy(now[i][1])}" r="4.5" fill="${col}"/>`;
+    });
+    g+=`<line x1="${sx(FLAG[MARK[0]][0])}" y1="${sy(FLAG[MARK[0]][1])}" x2="${sx(FLAG[MARK[1]][0])}" y2="${sy(FLAG[MARK[1]][1])}" stroke="#6b7183" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    g+=`<line x1="${sx(now[MARK[0]][0])}" y1="${sy(now[MARK[0]][1])}" x2="${sx(now[MARK[1]][0])}" y2="${sy(now[MARK[1]][1])}" stroke="#cfd4e0" stroke-width="1.5"/>`;
+
+    host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}">${g}</svg>`;
+
+    /* ---- panel readouts ---- */
+    const c=Math.cos(th), s=Math.sin(th);
+    document.getElementById('mat2d').innerHTML=
+      `<span class="r">${fmt(c)}</span><span class="r">${fmt(-s)}</span><span class="t">${fmt(tE[0])}</span>`+
+      `<span class="r">${fmt(s)}</span><span class="r">${fmt(c)}</span><span class="t">${fmt(tE[1])}</span>`+
+      `<span class="z">0</span><span class="z">0</span><span class="z">1</span>`;
+
+    const d0=dist(FLAG[MARK[0]],FLAG[MARK[1]]), d1=dist(fin[MARK[0]],fin[MARK[1]]);
+    const detR=c*c+s*s;
+    let txt=`det R = <b>${fmt(detR,3)}</b> &nbsp;·&nbsp; RᵀR = I <span class="yes">✓</span><br>`+
+            `|PQ| before <b>${fmt(d0)}</b> → after <b>${fmt(d1)}</b> <span class="yes">✓</span><br>`;
+    txt += C ? `fixed point c = <b>(${fmt(C[0])}, ${fmt(C[1])})</b><br>this motion <b>is</b> a ${fmt(st.th,0)}° turn about c`
+             : `θ = 0 → <span class="no">no fixed point</span><br>this motion is a <b>pure translation</b>`;
+    document.getElementById('chk2d').innerHTML=txt;
+
+    cap.textContent = st.order==='RT'
+      ? `x ↦ R(${fmt(st.th,0)}°)·x + (${fmt(st.a,1)}, ${fmt(st.b,1)})`
+      : `x ↦ R(${fmt(st.th,0)}°)·( x + (${fmt(st.a,1)}, ${fmt(st.b,1)}) ) = R·x + R·t`;
+  }
+
+  /* ---- controls ---- */
+  const link=(id,lab,key,f)=>{
+    const el=document.getElementById(id);
+    const set=()=>{ st[key]=+el.value; document.getElementById(lab).textContent=f(+el.value); draw(); };
+    el.addEventListener('input',()=>{ stop(); st.s=1; set(); }); set();
+  };
+  function stop(){ if(anim){ cancelAnimationFrame(anim); anim=null; } }
+
+  link('sTh','lTh','th',v=>v+'°');
+  link('sA','lA','a',v=>(+v).toFixed(1));
+  link('sB','lB','b',v=>(+v).toFixed(1));
+
+  const bRT=document.getElementById('bRT'), bTR=document.getElementById('bTR');
+  bRT.onclick=()=>{ st.order='RT'; bRT.classList.add('on'); bTR.classList.remove('on'); stop(); st.s=1; draw(); };
+  bTR.onclick=()=>{ st.order='TR'; bTR.classList.add('on'); bRT.classList.remove('on'); stop(); st.s=1; draw(); };
+
+  const bC=document.getElementById('bCentre'), bG=document.getElementById('bGhost');
+  bC.onclick=()=>{ st.centre=!st.centre; bC.classList.toggle('on',st.centre); draw(); };
+  bG.onclick=()=>{ st.ghost=!st.ghost; bG.classList.toggle('on',st.ghost); draw(); };
+
+  document.getElementById('bPlay').onclick=()=>{
+    stop();
+    if(reduce){ st.s=1; draw(); return; }
+    const T=1500, t0=performance.now(); st.s=0;
+    const step=now=>{
+      const u=Math.min(1,(now-t0)/T);
+      st.s=u<.5 ? 2*u*u : 1-Math.pow(-2*u+2,2)/2;     // ease in-out
+      draw();
+      if(u<1) anim=requestAnimationFrame(step); else { anim=null; st.s=1; draw(); }
+    };
+    anim=requestAnimationFrame(step);
+  };
+  document.getElementById('bReset').onclick=()=>{
+    stop(); st.s=1;
+    document.getElementById('sTh').value=55; document.getElementById('sA').value=-2.2; document.getElementById('sB').value=1.4;
+    st.th=55; st.a=-2.2; st.b=1.4;
+    document.getElementById('lTh').textContent='55°';
+    document.getElementById('lA').textContent='-2.2';
+    document.getElementById('lB').textContent='1.4';
+    draw();
+  };
+  draw();
+})();
+</script>
+
+<!-- ============================================================
+     PART 2 — space: SO(3) visualisers (three.js)
+     ============================================================ -->
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+let THREE, OrbitControls, ok=true;
+try{
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+}catch(e){
+  ok=false;
+  document.getElementById('fbA').style.display='grid';
+  document.getElementById('fbB').style.display='grid';
+  document.getElementById('holdA').style.display='none';
+  document.getElementById('holdB').style.display='none';
+  console.warn('three.js failed to load', e);
+}
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt=(v,d=2)=>{ let s=(Math.abs(v)<5e-4?0:v).toFixed(d); if(s.startsWith('-0.00')||s==='-0.0')s=s.replace('-',''); return s; };
+const COL=[0xe24a3b,0xefa13c,0x2faf9e,0x6c7fe0,0xd4649a,0x7fc45a];   // 6 cube faces
+
+/* ---------- small matrix helpers (row-major 3x3 arrays) ---------- */
+const mul=(A,B)=>A.map((r,i)=>[0,1,2].map(j=>A[i][0]*B[0][j]+A[i][1]*B[1][j]+A[i][2]*B[2][j]));
+
+function rodrigues(k,al){
+  const [x,y,z]=k, c=Math.cos(al), s=Math.sin(al), t=1-c;
+  return [
+    [c+x*x*t,      x*y*t - z*s,  x*z*t + y*s],
+    [y*x*t + z*s,  c + y*y*t,    y*z*t - x*s],
+    [z*x*t - y*s,  z*y*t + x*s,  c + z*z*t  ]
+  ];
+}
+const det3=M=>M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])
+            -M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])
+            +M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
+function orthoErr(M){                            // max |MᵀM − I|
+  let e=0;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+    let s=0; for(let k=0;k<3;k++) s+=M[k][i]*M[k][j];
+    e=Math.max(e,Math.abs(s-(i===j?1:0)));
+  }
+  return e;
+}
+/* Euler's theorem, run backwards: matrix -> (axis, angle) */
+function axisAngle(M){
+  const tr=M[0][0]+M[1][1]+M[2][2];
+  const al=Math.acos(Math.max(-1,Math.min(1,(tr-1)/2)));
+  if(al<1e-6) return {axis:[0,0,1], al:0};
+  let v;
+  if(Math.abs(Math.PI-al)<1e-4){                 // 180°: use the symmetric part
+    v=[Math.sqrt(Math.max(0,(M[0][0]+1)/2)), Math.sqrt(Math.max(0,(M[1][1]+1)/2)), Math.sqrt(Math.max(0,(M[2][2]+1)/2))];
+    const i=v.indexOf(Math.max(...v));
+    if(i===0){ v[1]=Math.sign(M[0][1])*v[1]; v[2]=Math.sign(M[0][2])*v[2]; }
+    else if(i===1){ v[0]=Math.sign(M[0][1])*v[0]; v[2]=Math.sign(M[1][2])*v[2]; }
+    else { v[0]=Math.sign(M[0][2])*v[0]; v[1]=Math.sign(M[1][2])*v[1]; }
+  }else{
+    v=[M[2][1]-M[1][2], M[0][2]-M[2][0], M[1][0]-M[0][1]].map(x=>x/(2*Math.sin(al)));
+  }
+  const n=Math.hypot(...v)||1;
+  return {axis:v.map(x=>x/n), al};
+}
+/* pretty axis: scale so the smallest non-zero component reads as 1 */
+function niceAxis(k){
+  const m=Math.min(...k.map(Math.abs).filter(x=>x>1e-3));
+  const s=k.map(x=>Math.abs(x)<1e-3?0:x/m);
+  const near=s.every(x=>Math.abs(x-Math.round(x))<0.02);
+  return near ? `(${s.map(x=>Math.round(x)).join(',')})` : `(${k.map(x=>fmt(x)).join(', ')})`;
+}
+function showMat(id,M,cls='r'){
+  document.getElementById(id).innerHTML=
+    M.map(row=>row.map(v=>`<span class="${Math.abs(v)<5e-3?'z':cls}">${fmt(v)}</span>`).join('')).join('');
+}
+
+/* ---------- shared scene furniture ---------- */
+function labelSprite(text,color){
+  const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s;
+  const c=cv.getContext('2d');
+  c.font='600 74px "Space Grotesk", sans-serif'; c.textAlign='center'; c.textBaseline='middle';
+  c.lineWidth=10; c.strokeStyle='rgba(10,12,18,.85)'; c.strokeText(text,s/2,s/2+3);
+  c.fillStyle=color; c.fillText(text,s/2,s/2+3);
+  const tx=new THREE.CanvasTexture(cv);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false}));
+  sp.scale.set(0.5,0.5,0.5);
+  return sp;
+}
+function worldAxes(len=2.4){
+  const g=new THREE.Group();
+  [[1,0,0,'x'],[0,1,0,'y'],[0,0,1,'z']].forEach(([x,y,z,n])=>{
+    const dir=new THREE.Vector3(x,y,z);
+    g.add(new THREE.ArrowHelper(dir,new THREE.Vector3(0,0,0),len,0x555d70,0.18,0.09));
+    const l=labelSprite(n,'#8a90a0'); l.position.copy(dir.clone().multiplyScalar(len+0.24)); g.add(l);
+  });
+  return g;
+}
+/* a block that cannot be mistaken for its own image: 6 coloured faces + a body triad */
+function makeBlock(size=1.15){
+  const grp=new THREE.Group();
+  const mats=COL.map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.55,metalness:.03,emissive:c,emissiveIntensity:.05}));
+  const cube=new THREE.Mesh(new THREE.BoxGeometry(size,size,size),mats);
+  grp.add(cube);
+  const eg=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(size,size,size)),
+        new THREE.LineBasicMaterial({color:0x11141c}));
+  grp.add(eg);
+  const h=size/2;
+  [[1,0,0,0xe24a3b],[0,1,0,0x2faf9e],[0,0,1,0x6c7fe0]].forEach(([x,y,z,c])=>{
+    grp.add(new THREE.ArrowHelper(new THREE.Vector3(x,y,z),new THREE.Vector3(0,0,0),h*1.9,c,0.16,0.08));
+  });
+  const corner=new THREE.Mesh(new THREE.SphereGeometry(0.09,18,18),
+        new THREE.MeshStandardMaterial({color:0xefa13c,emissive:0xefa13c,emissiveIntensity:.35}));
+  corner.position.set(h,h,h);
+  grp.add(corner);
+  grp.userData.corner=new THREE.Vector3(h,h,h);
+  return grp;
+}
+function ghostBlock(size=1.15){
+  const g=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(size,size,size)),
+      new THREE.LineBasicMaterial({color:0x4a5468,transparent:true,opacity:.55}));
+  return g;
+}
+
+/* ============================================================
+   VISUALISER A — axis and angle
+   ============================================================ */
+if(ok){
+  const hold=document.getElementById('holdA');
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42,1,0.1,100); camera.position.set(3.9,2.9,4.6);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  hold.appendChild(renderer.domElement);
+  const controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.enablePan=false;
+  controls.minDistance=3.6; controls.maxDistance=11;
+
+  scene.add(new THREE.AmbientLight(0xffffff,.78));
+  const k1=new THREE.DirectionalLight(0xffffff,.8); k1.position.set(5,6,4); scene.add(k1);
+  const k2=new THREE.DirectionalLight(0x9fb0ff,.32); k2.position.set(-4,-2,-3); scene.add(k2);
+  scene.add(worldAxes());
+
+  const ghost=ghostBlock(); scene.add(ghost);
+  const block=makeBlock(); scene.add(block);
+
+  /* the axis: a long line through the origin */
+  const axisGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-1,0),new THREE.Vector3(0,1,0)]);
+  const axisLine=new THREE.Line(axisGeo,new THREE.LineBasicMaterial({color:0xe24a3b}));
+  scene.add(axisLine);
+  const axisCone=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.25,20),
+      new THREE.MeshStandardMaterial({color:0xe24a3b,emissive:0xe24a3b,emissiveIntensity:.3}));
+  scene.add(axisCone);
+
+  /* the orbit circle of the marked corner (recomputed on every change) */
+  let orbit=null;
+  const orbitMat=new THREE.LineBasicMaterial({color:0xefa13c,transparent:true,opacity:.7});
+
+  const S={phi:45,pol:55,alp:90,u:1,ghost:true};
+  let raf=null;
+
+  const axisVec=()=>{
+    const p=S.pol*Math.PI/180, f=S.phi*Math.PI/180;
+    // tilt from the vertical y-axis, azimuth measured in the x–z plane
+    return [Math.sin(p)*Math.cos(f), Math.cos(p), Math.sin(p)*Math.sin(f)];
+  };
+
+  function rebuildOrbit(k){
+    if(orbit){ scene.remove(orbit); orbit.geometry.dispose(); }
+    const K=new THREE.Vector3(...k).normalize();
+    const c0=block.userData.corner.clone();
+    const along=K.clone().multiplyScalar(c0.dot(K));
+    const perp=c0.clone().sub(along);
+    const r=perp.length();
+    if(r<1e-3){ orbit=null; return; }
+    const e1=perp.clone().normalize(), e2=K.clone().cross(e1).normalize();
+    const pts=[];
+    for(let i=0;i<=96;i++){
+      const a=2*Math.PI*i/96;
+      pts.push(along.clone()
+        .add(e1.clone().multiplyScalar(r*Math.cos(a)))
+        .add(e2.clone().multiplyScalar(r*Math.sin(a))));
+    }
+    orbit=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),orbitMat);
+    scene.add(orbit);
+  }
+
+  function update(){
+    const k=axisVec(), al=S.alp*Math.PI/180;
+    const K=new THREE.Vector3(...k).normalize();
+
+    axisLine.scale.set(1,1,1);
+    axisLine.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),K);
+    axisLine.scale.setScalar(2.5);
+    axisCone.position.copy(K.clone().multiplyScalar(2.5));
+    axisCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),K);
+
+    block.quaternion.setFromAxisAngle(K, al*S.u);
+    ghost.visible=S.ghost;
+
+    const M=rodrigues(k,al);
+    showMat('matA',M);
+    const e=orthoErr(M);
+    document.getElementById('chkA').innerHTML=
+      `k = <b>(${fmt(k[0])}, ${fmt(k[1])}, ${fmt(k[2])})</b> &nbsp;|k| = <b>1.00</b><br>`+
+      `det R = <b>${fmt(det3(M),3)}</b> &nbsp;·&nbsp; RᵀR = I <span class="${e<1e-6?'yes':'no'}">${e<1e-6?'✓':'✗'}</span><br>`+
+      `tr R = <b>${fmt(M[0][0]+M[1][1]+M[2][2],3)}</b> = 1 + 2cos(${S.alp}°)`;
+    document.getElementById('capA').textContent=
+      `rotation by ${S.alp}° about k = (${fmt(k[0])}, ${fmt(k[1])}, ${fmt(k[2])})`;
+    rebuildOrbit(k);
+  }
+
+  const bind=(id,lab,key,suf='°')=>{
+    const el=document.getElementById(id);
+    const go=()=>{ S[key]=+el.value; document.getElementById(lab).textContent=el.value+suf; S.u=1; stopA(); update(); };
+    el.addEventListener('input',go); go();
+  };
+  function stopA(){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
+  bind('sPhi','lPhi','phi'); bind('sPol','lPol','pol'); bind('sAlp','lAlp','alp');
+
+  document.querySelectorAll('[data-ax]').forEach(b=>{
+    b.onclick=()=>{
+      // axis = (sin p·cos f, cos p, sin p·sin f);  solve for each named direction
+      const map={ x:[0,90], y:[0,0], z:[90,90], d:[45,54.7356] };   // [azimuth f, tilt p]
+      const [f,p]=map[b.dataset.ax];
+      document.getElementById('sPhi').value=f; document.getElementById('sPol').value=Math.round(p);
+      S.phi=f; S.pol=p;
+      document.getElementById('lPhi').textContent=Math.round(f)+'°';
+      document.getElementById('lPol').textContent=Math.round(p)+'°';
+      stopA(); S.u=1; update();
+    };
+  });
+
+  document.getElementById('bPlayA').onclick=()=>{
+    stopA();
+    if(reduce){ S.u=1; update(); return; }
+    const T=1600, t0=performance.now(); S.u=0;
+    const step=now=>{
+      const t=Math.min(1,(now-t0)/T);
+      S.u = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      update();
+      if(t<1) raf=requestAnimationFrame(step); else { raf=null; S.u=1; update(); }
+    };
+    raf=requestAnimationFrame(step);
+  };
+  const bg=document.getElementById('bGhostA');
+  bg.classList.add('on');
+  bg.onclick=()=>{ S.ghost=!S.ghost; bg.classList.toggle('on',S.ghost); update(); };
+
+  function size(){
+    const w=hold.clientWidth||600, h=hold.clientHeight||430;
+    camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);
+  }
+  addEventListener('resize',size); size(); update();
+  renderer.setAnimationLoop(()=>{ controls.update(); renderer.render(scene,camera); });
+}
+
+/* ============================================================
+   VISUALISER B — A·B versus B·A
+   ============================================================ */
+if(ok){
+  const MOVES={
+    X:{label:'x⁺90°', k:[1,0,0], al:Math.PI/2},
+    Y:{label:'y⁺90°', k:[0,1,0], al:Math.PI/2},
+    Z:{label:'z⁺90°', k:[0,0,1], al:Math.PI/2},
+    X2:{label:'x⁺180°',k:[1,0,0], al:Math.PI}
+  };
+  const S={A:'X', B:'Z', u:0, phase:0};
+  let raf=null;
+
+  const hold=document.getElementById('holdB');
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(40,1,0.1,100); camera.position.set(4.2,3.2,6.6);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  hold.appendChild(renderer.domElement);
+  const controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=.08; controls.enablePan=false;
+  controls.minDistance=4.5; controls.maxDistance=13;
+
+  scene.add(new THREE.AmbientLight(0xffffff,.78));
+  const k1=new THREE.DirectionalLight(0xffffff,.8); k1.position.set(5,6,4); scene.add(k1);
+  const k2=new THREE.DirectionalLight(0x9fb0ff,.32); k2.position.set(-4,-2,-3); scene.add(k2);
+
+  const left=new THREE.Group(), right=new THREE.Group();
+  left.position.set(-1.6,0,0); right.position.set(1.6,0,0);
+  scene.add(left); scene.add(right);
+  const cL=makeBlock(1.05), cR=makeBlock(1.05);
+  left.add(cL); right.add(cR);
+  const tagL=labelSprite('B·A','#2faf9e'), tagR=labelSprite('A·B','#efa13c');
+  tagL.position.set(0,1.5,0); tagR.position.set(0,1.5,0);
+  tagL.scale.set(.9,.9,.9); tagR.scale.set(.9,.9,.9);
+  left.add(tagL); right.add(tagR);
+
+  const q=(m)=>new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(...MOVES[m].k).normalize(),MOVES[m].al);
+
+  /* left cube: A first, then B (world-frame) → q = qB * qA */
+  function pose(){
+    const A=S.A, B=S.B;
+    const qA=q(A), qB=q(B);
+    const partial=(m,u)=>new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(...MOVES[m].k).normalize(), MOVES[m].al*u);
+
+    let ql=new THREE.Quaternion(), qr=new THREE.Quaternion();
+    if(S.phase===0){                        // first move in progress
+      ql=partial(A,S.u);
+      qr=partial(B,S.u);
+    }else{                                  // second move, applied on the left
+      ql=partial(B,S.u).multiply(qA);
+      qr=partial(A,S.u).multiply(qB);
+    }
+    cL.quaternion.copy(ql);
+    cR.quaternion.copy(qr);
+  }
+
+  function readout(){
+    const A=MOVES[S.A], B=MOVES[S.B];
+    const MA=rodrigues(A.k.map(x=>x),A.al), MB=rodrigues(B.k.map(x=>x),B.al);
+    const BA=mul(MB,MA), AB=mul(MA,MB);
+    showMat('matBA',BA,'r'); showMat('matAB',AB,'t');
+    const aa1=axisAngle(BA), aa2=axisAngle(AB);
+    const same=BA.every((r,i)=>r.every((v,j)=>Math.abs(v-AB[i][j])<1e-6));
+    document.getElementById('axBA').innerHTML=
+      `single turn of <b>${fmt(aa1.al*180/Math.PI,1)}°</b><br>about axis <b>${niceAxis(aa1.axis)}</b>`;
+    document.getElementById('axAB').innerHTML=
+      `single turn of <b>${fmt(aa2.al*180/Math.PI,1)}°</b><br>about axis <b>${niceAxis(aa2.axis)}</b>`;
+    document.getElementById('capB').innerHTML= same
+      ? `A = ${A.label}, B = ${B.label} &nbsp;→&nbsp; these two happen to commute: A·B = B·A`
+      : `A = ${A.label}, B = ${B.label} &nbsp;→&nbsp; A·B ≠ B·A — the cubes end up differently oriented`;
+  }
+
+  function rows(){
+    const mk=(host,key)=>{
+      const el=document.getElementById(host); el.innerHTML='';
+      Object.keys(MOVES).forEach(m=>{
+        const b=document.createElement('button');
+        b.className='cbtn'+(S[key]===m?' on':'');
+        b.textContent=MOVES[m].label;
+        b.onclick=()=>{ S[key]=m; stopB(); S.u=1; S.phase=1; rows(); pose(); readout(); };
+        el.appendChild(b);
+      });
+    };
+    mk('rowA','A'); mk('rowB','B');
+  }
+  function stopB(){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
+
+  document.getElementById('bPlayB').onclick=()=>{
+    stopB();
+    if(reduce){ S.phase=1; S.u=1; pose(); return; }
+    const T=1100;
+    const run=phase=>{
+      S.phase=phase; const t0=performance.now();
+      const step=now=>{
+        const t=Math.min(1,(now-t0)/T);
+        S.u = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+        pose();
+        if(t<1) raf=requestAnimationFrame(step);
+        else if(phase===0){ raf=null; setTimeout(()=>run(1),260); }
+        else { raf=null; }
+      };
+      raf=requestAnimationFrame(step);
+    };
+    S.u=0; S.phase=0; pose(); run(0);
+  };
+  document.getElementById('bResetB').onclick=()=>{
+    stopB(); S.u=0; S.phase=0; pose();
+  };
+
+  function size(){
+    const w=hold.clientWidth||600, h=hold.clientHeight||430;
+    camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);
+  }
+  addEventListener('resize',size); size();
+  rows(); readout(); S.u=1; S.phase=1; pose();
+  renderer.setAnimationLoop(()=>{ controls.update(); renderer.render(scene,camera); });
+}
+</script>
+</body>
+</html>
