@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SU(2): the Group that is a Sphere — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0; --v5:#8f6bd6;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:20px;font-weight:600;margin:1.9em 0 .5em;letter-spacing:-.01em}
+  p{margin:0 0 1.05em}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,8vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:17ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  .eq{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+      font-family:"JetBrains Mono",monospace;font-size:15px;margin:1.5em 0;line-height:1.4}
+  .eq .op{color:var(--ink-soft);font-size:17px}
+  .mat{display:inline-grid;gap:3px 16px;padding:8px 10px;position:relative;
+       font-family:"JetBrains Mono",monospace;font-size:14px;text-align:center;
+       border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:4px}
+  .mat.c1{grid-template-columns:auto}
+  .mat.c2{grid-template-columns:repeat(2,auto)}
+  .mat .z{color:#a9adb4}
+  .lbl-eq{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);text-align:center;margin:-.6em 0 1.4em}
+  .callout{border-left:3px solid var(--v3);background:var(--paper-2);padding:16px 20px;margin:1.5em 0;font-size:17px}
+  .callout b{font-family:"Space Grotesk",sans-serif}
+
+  /* static figures */
+  .fig{background:var(--viewport);border-radius:16px;padding:22px 18px 14px;margin:1.7em 0 .6em;
+       box-shadow:0 24px 60px -30px rgba(20,22,30,.55)}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig .cap{color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;
+            text-align:center;margin-top:12px;line-height:1.6}
+  .fig .cap b{color:#e8eaf0;font-weight:600}
+
+  /* interactive module shell */
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:10px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 340px}
+  @media (max-width:820px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 22%,#1b1f2b 0%,var(--viewport) 74%);min-height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px 32px}
+  .stage svg{width:100%;height:auto;display:block}
+  .stage .cap{position:absolute;left:14px;right:14px;bottom:10px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;text-align:center;min-height:1.3em}
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:18px;color:#e8eaf0;display:flex;flex-direction:column;gap:11px}
+  @media (max-width:820px){ .panel{border-left:none;border-top:1px solid var(--viewport-line)} }
+  .plbl{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -6px;display:flex;justify-content:space-between;align-items:baseline}
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl{flex:1;min-width:74px;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl.solid{background:#2a3346;color:#fff;border-color:#3a465e}
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:11px 13px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .rr{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#aeb4c4;line-height:1.65;margin-top:5px}
+  .readout .rr b{color:#fff;font-weight:600}
+  .yes{color:var(--v3);font-weight:700}.no{color:var(--v2);font-weight:700}
+  .dmat{display:inline-grid;gap:2px 12px;padding:7px 9px;margin:6px 0 2px;
+        font-family:"JetBrains Mono",monospace;font-size:12px;color:#fff;text-align:right;
+        border-left:2px solid #4a5468;border-right:2px solid #4a5468;border-radius:4px;
+        grid-template-columns:repeat(2,minmax(74px,auto))}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#2a2f3a;border-radius:3px;outline:none;margin:7px 0 2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  .slval{font-family:"JetBrains Mono",monospace;color:#fff;font-weight:600;font-size:12px}
+
+  table.ctab{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:15px}
+  table.ctab th,table.ctab td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line)}
+  table.ctab th{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  table.ctab td.mono,table.ctab td .mono{font-family:"JetBrains Mono",monospace}
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.6em 0}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:24px;font-weight:600;line-height:1.1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts{grid-template-columns:1fr 1fr} }
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:14px 0 2px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 7</b> · SU(2)</div>
+    <h1>A group you can hold: the <span class="swap">3-sphere</span>.</h1>
+    <p class="sub">Four real numbers with <span class="mono">x₀² + x₁² + x₂² + x₃² = 1</span>. That is a sphere in four dimensions — and, remarkably, it is also a group of matrices. Every conjugacy class of it is a <em>latitude</em>; every circle from pole to pole is a <em>subgroup</em>; and the abstract machinery of Module 6 turns into something you can point at.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<!-- ============================ 01 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — THE STAGE</span>
+    <h2>The unit 3-sphere, and how to navigate it</h2>
+
+    <p>In <span class="mono">ℝ⁴</span>, the set of points at distance 1 from the origin is the <em class="term">unit 3-sphere</em>:</p>
+
+    <div class="eq"><span class="mono" style="font-size:17px">S³ = { (x₀, x₁, x₂, x₃) ∈ ℝ⁴ : x₀² + x₁² + x₂² + x₃² = 1 }</span></div>
+
+    <p>It is called a <em>3</em>-sphere because it is three-dimensional: pick any three of the coordinates freely (within reason) and the fourth is forced. Nobody can picture it directly, but nobody needs to. Use the globe you already know and raise every dimension by one.</p>
+
+    <p>On the ordinary globe <span class="mono">S²</span> we single out a coordinate — the height <span class="mono">z</span> — and get two familiar families of curves. Do exactly the same on <span class="mono">S³</span> with the coordinate <span class="mono">x₀</span>:</p>
+
+    <ul>
+      <li><b>Latitude.</b> Fix <span class="mono">x₀ = cos t</span>. The remaining coordinates must satisfy <span class="mono">x₁² + x₂² + x₃² = sin²t</span> — an ordinary <b>2-sphere of radius <span class="mono">sin t</span></b> sitting in <span class="mono">ℝ³</span>. On the globe a latitude was a circle; here it is a whole sphere. It shrinks to a single point at <span class="mono">t = 0</span> (the <em class="term">north pole</em> <span class="mono">(1,0,0,0)</span>) and at <span class="mono">t = π</span> (the <em class="term">south pole</em> <span class="mono">(−1,0,0,0)</span>), and it is fattest at the <em class="term">equator</em> <span class="mono">t = π/2</span>, where <span class="mono">x₀ = 0</span>.</li>
+      <li><b>Longitude.</b> Choose a direction <span class="mono">n = (n₁,n₂,n₃)</span> with <span class="mono">|n| = 1</span> — a point of the ordinary sphere <span class="mono">S²</span> — and take all points <span class="mono">(cos t, sin t · n)</span> as <span class="mono">t</span> runs round. That is a <b>great circle through both poles</b>, exactly like a meridian on the globe.</li>
+    </ul>
+
+    <p>Every point of <span class="mono">S³</span> other than the two poles is written in exactly one way as <span class="mono">(cos t, sin t · n)</span> with <span class="mono">0 &lt; t &lt; π</span>: read off <span class="mono">t</span> from <span class="mono">x₀</span>, then <span class="mono">n</span> is the unit vector along <span class="mono">(x₁,x₂,x₃)</span>. <b>One latitude, one longitude, one point.</b></p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Latitudes and longitudes on the ordinary globe, and latitudes of the 3-sphere as a stack of 2-spheres">
+        <!-- globe -->
+        <circle cx="120" cy="125" r="82" fill="none" stroke="#2a2f3a" stroke-width="1.6"/>
+        <g stroke="#6c7fe0" stroke-width="1.2" fill="none">
+          <ellipse cx="120" cy="125" rx="82" ry="20"/>
+          <ellipse cx="120" cy="85" rx="72" ry="17"/>
+          <ellipse cx="120" cy="165" rx="72" ry="17"/>
+        </g>
+        <g stroke="#2faf9e" stroke-width="1.2" fill="none">
+          <ellipse cx="120" cy="125" rx="82" ry="82"/>
+          <ellipse cx="120" cy="125" rx="52" ry="82"/>
+          <ellipse cx="120" cy="125" rx="18" ry="82"/>
+        </g>
+        <circle cx="120" cy="43" r="4.5" fill="#e8eaf0"/><circle cx="120" cy="207" r="4.5" fill="#e8eaf0"/>
+        <text x="120" y="30" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle">N</text>
+        <text x="120" y="228" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle">S</text>
+        <text x="120" y="256" fill="#8a90a0" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle">S² : latitude = circle</text>
+
+        <!-- S3 as a stack of 2-spheres -->
+        <line x1="285" y1="125" x2="655" y2="125" stroke="#2a2f3a" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <text x="470" y="252" fill="#8a90a0" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle">S³ : latitude = 2-sphere of radius sin t</text>
+
+        <circle cx="300" cy="125" r="5" fill="#e24a3b"/>
+        <text x="300" y="108" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="11.5" text-anchor="middle">x₀=1</text>
+
+        <g fill="none" stroke="#2faf9e" stroke-width="1.5">
+          <circle cx="375" cy="125" r="33"/><ellipse cx="375" cy="125" rx="33" ry="9" stroke="#1f5f58"/>
+          <circle cx="470" cy="125" r="47"/><ellipse cx="470" cy="125" rx="47" ry="13" stroke="#1f5f58"/>
+          <circle cx="565" cy="125" r="33"/><ellipse cx="565" cy="125" rx="33" ry="9" stroke="#1f5f58"/>
+        </g>
+        <circle cx="640" cy="125" r="5" fill="#e24a3b"/>
+        <text x="640" y="108" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="11.5" text-anchor="middle">x₀=−1</text>
+        <text x="470" y="192" fill="#2faf9e" font-family="JetBrains Mono, monospace" font-size="11.5" text-anchor="middle">equator, x₀ = 0</text>
+      </svg>
+      <div class="cap">Left: the globe, latitudes in <span style="color:#6c7fe0">blue</span>, longitudes in <span style="color:#2faf9e">teal</span>. Right: <b>S³ is a stack of 2-spheres</b> — a point, then spheres swelling to the equator, then shrinking back to a point.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 02 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — THE GROUP</span>
+    <h2>SU(2): unitary, determinant one</h2>
+
+    <p>Recall <span class="mono">SO(2)</span> from Module 5: real matrices with <span class="mono">RᵀR = I</span> and <span class="mono">det R = 1</span>. Replace real by complex, and transpose by <em class="term">conjugate</em> transpose <span class="mono">U† = ŪΤ</span>:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">SU(2) = { U ∈ M₂(ℂ) : U†U = I, &nbsp;det U = 1 }</span></div>
+
+    <p>Those two conditions pin the matrix down almost completely. Write <span class="mono">U = [[a, b],[c, d]]</span>. Determinant one gives the inverse for free: <span class="mono">U⁻¹ = [[d, −b],[−c, a]]</span>. Unitarity says <span class="mono">U⁻¹ = U†= [[ā, c̄],[b̄, d̄]]</span>. Compare the two expressions entry by entry:</p>
+
+    <div class="eq"><span class="mono">d = ā</span><span class="op">,</span><span class="mono">c = −b̄</span></div>
+
+    <p>So a matrix in <span class="mono">SU(2)</span> is determined by its <em>first row</em> alone, and the second row is the first one recycled:</p>
+
+    <div class="eq">
+      <span>U =</span>
+      <span class="mat c2"><span>a</span><span>b</span><span>−b̄</span><span>ā</span></span>
+      <span class="op">with</span>
+      <span class="mono">|a|² + |b|² = 1</span>
+    </div>
+    <p class="lbl-eq">the determinant condition <span class="mono">a·ā − b·(−b̄) = |a|² + |b|²</span> is exactly the unit-length condition</p>
+
+    <p>Two complex numbers are four real numbers, and <span class="mono">|a|² + |b|² = 1</span> is one equation among them. <span class="mono">SU(2)</span> is three-dimensional — the same count as <span class="mono">SO(3)</span>, which is not a coincidence and is the subject of the next module.</p>
+  </div>
+</section>
+
+<!-- ============================ 03 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — THE DICTIONARY</span>
+    <h2>SU(2) <i>is</i> the 3-sphere</h2>
+
+    <p>Split the two complex numbers into real and imaginary parts, <span class="mono">a = x₀ + x₁i</span> and <span class="mono">b = x₂ + x₃i</span>. The general element becomes</p>
+
+    <div class="eq">
+      <span class="mat c2"><span>x₀ + x₁i</span><span>x₂ + x₃i</span><span>−x₂ + x₃i</span><span>x₀ − x₁i</span></span>
+      <span class="op">⟼</span>
+      <span class="mono">(x₀, x₁, x₂, x₃)</span>
+      <span class="op">,</span>
+      <span class="mono">Σ xᵢ² = 1</span>
+    </div>
+
+    <p>Every matrix gives one point of <span class="mono">S³</span>; every point of <span class="mono">S³</span> gives one matrix; and the correspondence is perfectly rigid. <b>As a set, <span class="mono">SU(2)</span> is the 3-sphere.</b> Better still, it is a <em>group</em> sitting on that sphere — matrix multiplication is a way of multiplying points of <span class="mono">S³</span>. (Only the circle <span class="mono">S¹</span> and this sphere <span class="mono">S³</span> can carry a group law at all; the ordinary globe <span class="mono">S²</span> cannot.)</p>
+
+    <h3>Four landmarks</h3>
+    <p>The four coordinates are the coefficients of four basic matrices — the identity and three "imaginary units":</p>
+
+    <div class="eq">
+      <span class="mono">U = x₀ I + x₁ u₁ + x₂ u₂ + x₃ u₃</span><span class="op">,</span>
+      <span>I =</span><span class="mat c2"><span>1</span><span class="z">0</span><span class="z">0</span><span>1</span></span>
+      <span>u₁ =</span><span class="mat c2"><span>i</span><span class="z">0</span><span class="z">0</span><span>−i</span></span>
+      <span>u₂ =</span><span class="mat c2"><span class="z">0</span><span>1</span><span>−1</span><span class="z">0</span></span>
+      <span>u₃ =</span><span class="mat c2"><span class="z">0</span><span>i</span><span>i</span><span class="z">0</span></span>
+    </div>
+
+    <p>Multiply them out and you find <span class="mono">u₁² = u₂² = u₃² = −I</span> and <span class="mono">u₁u₂ = u₃</span> — the relations of the <em class="term">quaternions</em> <span class="mono">i, j, k</span>. Physicists will recognise <span class="mono">i</span> times the Pauli matrices. What matters for us is the geometry that follows, which we can now read straight off the dictionary:</p>
+
+    <table class="ctab">
+      <thead><tr><th>on the sphere</th><th>in the group</th><th>why</th></tr></thead>
+      <tbody>
+        <tr><td>north pole <span class="mono">(1,0,0,0)</span></td><td>the identity <span class="mono">I</span></td><td class="mono">x₀=1 forces the rest to vanish</td></tr>
+        <tr><td>south pole <span class="mono">(−1,0,0,0)</span></td><td class="mono">−I</td><td class="mono">the only other central element</td></tr>
+        <tr><td>the coordinate <span class="mono">x₀</span></td><td class="mono">½ · trace U</td><td class="mono">tr U = (x₀+x₁i) + (x₀−x₁i)</td></tr>
+        <tr><td>the equator <span class="mono">x₀ = 0</span></td><td>the <b>trace-zero</b> matrices</td><td class="mono">these satisfy U² = −I</td></tr>
+        <tr><td>the antipode <span class="mono">−x</span></td><td class="mono">−U</td><td class="mono">negating all four coordinates</td></tr>
+      </tbody>
+    </table>
+
+    <p>Because <span class="mono">tr U = 2x₀</span> and <span class="mono">x₀ ∈ [−1,1]</span>, the trace of an <span class="mono">SU(2)</span> matrix is always a real number between <span class="mono">−2</span> and <span class="mono">2</span>. Writing <span class="mono">x₀ = cos(θ/2)</span> — the half-angle is deliberate, and will pay for itself next module — every element takes the <em class="term">axis–angle form</em></p>
+
+    <div class="eq"><span class="mono" style="font-size:16.5px">U(θ, n) = cos(θ/2) · I + sin(θ/2) · u(n)</span><span class="op">,</span><span class="mono">u(n) = n₁u₁ + n₂u₂ + n₃u₃</span></div>
+
+    <p>with <span class="mono">n</span> a unit vector in <span class="mono">ℝ³</span> — its <b>longitude</b> — and <span class="mono">θ/2 = t</span> its <b>latitude</b>. Dial both below.</p>
+
+    <div class="module">
+      <div class="stage">
+        <svg id="svgA" viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="cap" id="capA"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>latitude &nbsp;t = θ/2</span><span class="slval" id="lT">60°</span></div>
+        <input type="range" id="sT" min="0" max="180" step="1" value="60">
+        <div class="plbl"><span>longitude n · polar</span><span class="slval" id="lP">55°</span></div>
+        <input type="range" id="sP" min="0" max="180" step="1" value="55">
+        <div class="plbl"><span>longitude n · azimuth</span><span class="slval" id="lA">30°</span></div>
+        <input type="range" id="sA" min="0" max="359" step="1" value="30">
+        <div class="readout">
+          <div class="lbl">the matrix U</div>
+          <div class="dmat" id="matA"></div>
+        </div>
+        <div class="readout">
+          <div class="lbl">the point of S³</div>
+          <div class="rr" id="ptA"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl" id="bI">t = 0 · I</button>
+          <button class="ctrl" id="bEq">t = 90° · equator</button>
+          <button class="ctrl" id="bMI">t = 180° · −I</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#2faf9e"></i> the vector part (x₁,x₂,x₃)</span>
+      <span><i style="background:#efa13c"></i> the latitude sphere, radius sin t</span>
+      <span><i style="background:#6c7fe0"></i> the longitude circle through ±I</span>
+    </div>
+    <p class="caption">Left: the ball of vector parts. The point <span class="mono">(x₁,x₂,x₃)</span> lives on the orange sphere of radius <span class="mono">sin t</span> — that sphere is the whole latitude. Right: the longitude, the circle spanned by <span class="mono">I</span> and <span class="mono">u(n)</span>, with <span class="mono">±I</span> at its ends and the trace-zero point at the top.</p>
+  </div>
+</section>
+
+<!-- ============================ 04 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — THE PAYOFF</span>
+    <h2>The latitudes are exactly the conjugacy classes</h2>
+
+    <p>Module 6 left us with a slogan: a conjugacy class is what remains when you forget the viewpoint, and for matrices the trace survives, because <span class="mono">tr(gUg⁻¹) = tr(U)</span>. Here the trace <em>is</em> the latitude, <span class="mono">tr U = 2x₀</span>. So conjugation can never move a point off its latitude sphere. Half the claim is already done:</p>
+
+    <div class="callout"><b>Conjugation keeps <span class="mono">x₀</span> and rotates <span class="mono">(x₁,x₂,x₃)</span>.</b> Write <span class="mono">U = cos t · I + sin t · u(n)</span>. Since the identity commutes with everything, <span class="mono">gUg⁻¹ = cos t · I + sin t · (g u(n) g⁻¹)</span>. The first term is untouched; conjugation only acts on the direction <span class="mono">n</span> — and it acts on it as a <b>rotation of ℝ³</b>.</div>
+
+    <p>Why a rotation? Conjugation preserves both the trace and the determinant, so it sends the sphere of unit vectors <span class="mono">n</span> to itself, linearly and without distorting lengths — and an isometry of <span class="mono">ℝ³</span> fixing the origin is exactly an orthogonal matrix (Module 5). Concretely: conjugating by an element of the longitude in the direction <span class="mono">m</span> rotates <span class="mono">n</span> about the axis <span class="mono">m</span> — through <em>twice</em> the angle. That factor of two is the whole story of the next module.</p>
+
+    <p>Now finish the argument. Given any two directions <span class="mono">n</span> and <span class="mono">n′</span>, there is certainly a rotation of <span class="mono">ℝ³</span> carrying one to the other — so there is a <span class="mono">g</span> carrying <span class="mono">U(θ, n)</span> to <span class="mono">U(θ, n′)</span>. Every point of the latitude is reachable, and no point off it is. Therefore:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16.5px">conjugacy class of U &nbsp;=&nbsp; { V ∈ SU(2) : tr V = tr U } &nbsp;=&nbsp; one latitude 2-sphere</span></div>
+
+    <p>Drag <span class="mono">g</span> below and watch the conjugate <span class="mono">gUg⁻¹</span> slide over the orange sphere and never leave it. The trace readout does not so much as flicker.</p>
+
+    <div class="module">
+      <div class="stage">
+        <svg id="svgB" viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="cap" id="capB"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>U : latitude t</span><span class="slval" id="lT2">70°</span></div>
+        <input type="range" id="sT2" min="0" max="180" step="1" value="70">
+        <div class="plbl"><span>g : axis polar</span><span class="slval" id="lGP">70°</span></div>
+        <input type="range" id="sGP" min="0" max="180" step="1" value="70">
+        <div class="plbl"><span>g : axis azimuth</span><span class="slval" id="lGA">0°</span></div>
+        <input type="range" id="sGA" min="0" max="359" step="1" value="0">
+        <div class="plbl"><span>g : how far along it</span><span class="slval" id="lGS">0°</span></div>
+        <input type="range" id="sGS" min="0" max="180" step="1" value="0">
+        <div class="readout">
+          <div class="lbl">trace — the class label</div>
+          <div class="rr" id="trB"></div>
+        </div>
+        <div class="readout">
+          <div class="lbl">g U g⁻¹ as a point of S³</div>
+          <div class="rr" id="ptB"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="bSweep">sweep every g</button>
+          <button class="ctrl" id="bClear">clear trail</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#2faf9e"></i> U — where you started</span>
+      <span><i style="background:#e24a3b"></i> gUg⁻¹ — the conjugate</span>
+      <span><i style="background:#efa13c"></i> the class: the whole sphere</span>
+    </div>
+
+    <p style="margin-top:1.4em">Compare this with the finite groups. In <span class="mono">S₄</span> a conjugacy class was a list of six or eight permutations; here a class is a continuous 2-sphere, and the classes are labelled by a single real number <span class="mono">θ ∈ [0, 2π]</span>, or equivalently by the trace in <span class="mono">[−2, 2]</span>. The two <em>degenerate</em> classes are the two poles: <span class="mono">{I}</span> and <span class="mono">{−I}</span>, each a class all by itself. Those, and only those, commute with everything — they are the <em class="term">centre</em> of <span class="mono">SU(2)</span>.</p>
+
+    <div class="facts">
+      <div><div class="n" style="color:var(--v1)">{I}</div><div class="k">north pole · trace 2</div></div>
+      <div><div class="n" style="color:var(--v3)">S²</div><div class="k">each latitude · one class</div></div>
+      <div><div class="n" style="color:var(--v2)">tr</div><div class="k">the complete invariant</div></div>
+      <div><div class="n" style="color:var(--v1)">{−I}</div><div class="k">south pole · trace −2</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 05 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — THE OTHER FAMILY</span>
+    <h2>Longitudes: circles that are subgroups</h2>
+
+    <p>Fix a direction <span class="mono">n</span> and collect every element with that longitude:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">L(n) = { cos t · I + sin t · u(n) &nbsp;:&nbsp; t ∈ [0, 2π) }</span></div>
+
+    <p>Because <span class="mono">u(n)² = −I</span>, this behaves precisely like the complex exponential: multiplying two such elements adds their angles,</p>
+
+    <div class="eq"><span class="mono">(cos t + sin t·u)(cos s + sin s·u) = cos(t+s) + sin(t+s)·u</span></div>
+
+    <p>— the addition formulas again, with <span class="mono">u(n)</span> playing the role of <span class="mono">i</span>. So each longitude is <b>closed under multiplication and inverses</b>: it is a subgroup, and it is a circle. It is our old friend <span class="mono">L(n) ≅ U(1) ≅ SO(2)</span>, the abelian circle group of Module 5, now embedded in a sphere. Choosing <span class="mono">n = (1,0,0)</span> gives the visible one, the <b>diagonal</b> matrices <span class="mono">diag(e^{it}, e^{−it})</span>.</p>
+
+    <p>Two clean statements, both immediate from the coordinates:</p>
+
+    <p><b>(i) Every element other than <span class="mono">±I</span> lies on exactly one longitude.</b> If <span class="mono">U ≠ ±I</span> then its vector part <span class="mono">(x₁,x₂,x₃)</span> is not zero, so <span class="mono">n = (x₁,x₂,x₃)/|(x₁,x₂,x₃)|</span> is forced. (Strictly, <span class="mono">n</span> and <span class="mono">−n</span> trace the same circle backwards — the <em>circle</em> is unique.)</p>
+
+    <p><b>(ii) <span class="mono">±I</span> lie on every longitude</b> — take <span class="mono">t = 0</span> and <span class="mono">t = π</span>, which kill the <span class="mono">u(n)</span> term whatever <span class="mono">n</span> is. Every meridian passes through both poles, exactly as on the globe. So the longitudes cover the whole sphere and overlap only at the two poles:</p>
+
+    <div class="eq"><span class="mono">L(n) ∩ L(n′) = {I, −I}</span><span class="op">for</span><span class="mono">n′ ≠ ±n</span></div>
+
+    <div class="fig">
+      <svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Longitude circles through both poles, cut by a latitude in two points">
+        <circle cx="330" cy="150" r="112" fill="none" stroke="#2a2f3a" stroke-width="1.6"/>
+        <g stroke="#6c7fe0" stroke-width="1.4" fill="none">
+          <ellipse cx="330" cy="150" rx="112" ry="112"/>
+          <ellipse cx="330" cy="150" rx="78" ry="112"/>
+          <ellipse cx="330" cy="150" rx="42" ry="112"/>
+          <ellipse cx="330" cy="150" rx="12" ry="112"/>
+        </g>
+        <ellipse cx="330" cy="94" rx="97" ry="20" fill="none" stroke="#efa13c" stroke-width="2" stroke-dasharray="5 4"/>
+        <circle cx="330" cy="38" r="6" fill="#e24a3b"/>
+        <circle cx="330" cy="262" r="6" fill="#e24a3b"/>
+        <text x="330" y="26" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">+I</text>
+        <text x="330" y="285" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">−I</text>
+        <text x="565" y="150" fill="#6c7fe0" font-family="JetBrains Mono, monospace" font-size="12">longitudes</text>
+        <text x="565" y="168" fill="#6c7fe0" font-family="JetBrains Mono, monospace" font-size="12">= subgroups</text>
+        <text x="30" y="90" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="12">latitude</text>
+        <text x="30" y="108" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="12">= one class</text>
+        <g fill="#efa13c">
+          <circle cx="427" cy="94" r="4"/><circle cx="233" cy="94" r="4"/>
+          <circle cx="405" cy="86" r="4"/><circle cx="255" cy="86" r="4"/>
+        </g>
+      </svg>
+      <div class="cap">Schematic (a globe standing in for S³; honestly, each latitude is a 2-sphere, not a circle). Every longitude runs pole to pole; they meet <b>only</b> at <span style="color:#e24a3b">±I</span>. A latitude cuts each longitude in exactly <b>two</b> points, <span class="mono">t</span> and <span class="mono">−t</span> — the same trace, <span class="mono">2cos t</span>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 06 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">06 — HOW THE TWO FAMILIES FIT TOGETHER</span>
+    <h2>All the longitudes are conjugate subgroups</h2>
+
+    <p>Conjugation by a fixed <span class="mono">g</span> is an automorphism: it carries subgroups to subgroups. Apply it to a longitude and use the box from §04 — <span class="mono">g</span> fixes <span class="mono">x₀</span> and rotates the direction:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">g L(n) g⁻¹ = { cos t · I + sin t · g u(n) g⁻¹ } = L(n′)</span><span class="op">,</span><span class="mono">n′ = R(g) n</span></div>
+
+    <p>Another longitude, whole and intact. And since rotations move any direction to any other, <b>every longitude is conjugate to every other</b>: the circles <span class="mono">L(n)</span> form a single conjugacy class of subgroups — one subgroup, seen from every possible seat. (In the language of Lie theory these are the <em class="term">maximal tori</em> of <span class="mono">SU(2)</span>, and the statement "all maximal tori are conjugate" is a theorem you have just proved by hand.)</p>
+
+    <p>Turn that around and it says something you already know from linear algebra:</p>
+
+    <div class="callout"><b>Every element of <span class="mono">SU(2)</span> is conjugate to a diagonal one.</b> Take <span class="mono">U</span> on the longitude <span class="mono">L(n)</span>, conjugate by the <span class="mono">g</span> that rotates <span class="mono">n</span> to <span class="mono">(1,0,0)</span>, and land on the diagonal circle: <span class="mono">gUg⁻¹ = diag(e^{it}, e^{−it})</span>. This is the spectral theorem for unitary matrices — the eigenvalues <span class="mono">e^{±it}</span> are the conjugation-invariant data, and <span class="mono">tr = 2cos t</span> is what you see of them.</div>
+
+    <p>The two pictures now interlock. A <b>latitude</b> (a class) meets a <b>longitude</b> (a maximal torus) in exactly two points, <span class="mono">t</span> and <span class="mono">−t</span>. Two points, because swapping the two eigenvalues is the only ambiguity left in diagonalising — a remnant of order two, the smallest <em class="term">Weyl group</em>. Classification of elements up to conjugacy therefore reduces from a three-dimensional sphere to a single number <span class="mono">t ∈ [0, π]</span>, and character theory in Part 2 will live on precisely that segment.</p>
+  </div>
+</section>
+
+<!-- ============================ 07 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">07 — WHERE THIS IS GOING</span>
+    <h2>Next: the sphere that rotates space</h2>
+
+    <p>One fact did all the work above and was never given a name: conjugation by <span class="mono">g ∈ SU(2)</span> rotates the vector part <span class="mono">(x₁,x₂,x₃)</span>. That assignment</p>
+
+    <div class="eq"><span class="mono" style="font-size:16.5px">Φ : SU(2) → SO(3), &nbsp; g ⟼ (the rotation it performs by conjugation)</span></div>
+
+    <p>is a homomorphism — the <em class="term">spin homomorphism</em>. It is onto, and its kernel is exactly the centre <span class="mono">{I, −I}</span> we found sitting at the two poles: <span class="mono">g</span> and <span class="mono">−g</span> perform the same rotation of space. So <span class="mono">SU(2)</span> is a <b>two-to-one cover</b> of the rotation group, <span class="mono">SO(3) ≅ S³/±</span>, and the mysterious half-angle <span class="mono">θ/2</span> in <span class="mono">cos(θ/2)·I + sin(θ/2)·u(n)</span> is about to explain why a spinning electron must be turned through <span class="mono">720°</span>, not <span class="mono">360°</span>, to come home. That is Module 8.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 7 of Part 1 · SU(2) and S³</p>
+    <p>Every matrix, trace and conjugate on this page is computed live from the sliders — the sphere and the algebra are the same object, and cannot disagree.</p>
+  </div>
+</footer>
+
+<script>
+/* ===================================================================
+   SU(2) ≅ unit quaternions ≅ S³.
+   q = [x0,x1,x2,x3]  ↔  [[x0+x1 i, x2+x3 i],[-x2+x3 i, x0-x1 i]]
+   with u1 = iσ3, u2 = iσ2, u3 = iσ1 obeying i,j,k relations,
+   so matrix product = quaternion product.
+   =================================================================== */
+const NS = "http://www.w3.org/2000/svg";
+const D = Math.PI/180;
+
+/* ---- quaternion algebra ---- */
+function qmul(p,q){
+  return [
+    p[0]*q[0] - p[1]*q[1] - p[2]*q[2] - p[3]*q[3],
+    p[0]*q[1] + p[1]*q[0] + p[2]*q[3] - p[3]*q[2],
+    p[0]*q[2] - p[1]*q[3] + p[2]*q[0] + p[3]*q[1],
+    p[0]*q[3] + p[1]*q[2] - p[2]*q[1] + p[3]*q[0]
+  ];
+}
+const qinv = q => [q[0],-q[1],-q[2],-q[3]];          // unit quaternion
+const conj = (g,u) => qmul(qmul(g,u), qinv(g));      // g u g⁻¹
+const dirOf = (pol,az) => [Math.sin(pol)*Math.cos(az), Math.sin(pol)*Math.sin(az), Math.cos(pol)];
+const elt = (t,n) => [Math.cos(t), Math.sin(t)*n[0], Math.sin(t)*n[1], Math.sin(t)*n[2]];
+
+/* ---- number / matrix formatting ---- */
+const f2 = v => (Math.abs(v) < 5e-3 ? "0.00" : v.toFixed(2));
+function cx(re,im){
+  const r = f2(re), i = f2(Math.abs(im));
+  const sg = (im < -5e-3) ? "−" : "+";
+  return r + sg + i + "i";
+}
+function matHTML(q){
+  const [a,b,c,d] = [q[0],q[1],q[2],q[3]];
+  return `<span>${cx(a,b)}</span><span>${cx(c,d)}</span>`
+       + `<span>${cx(-c,d)}</span><span>${cx(a,-b)}</span>`;
+}
+const vecTxt = q => `(${f2(q[0])}, ${f2(q[1])}, ${f2(q[2])}, ${f2(q[3])})`;
+
+/* ---- 3D projection (orthographic) ---- */
+const AZ = 34*D, EL = 17*D;
+const eR = [-Math.sin(AZ), Math.cos(AZ), 0];
+const eU = [-Math.cos(AZ)*Math.sin(EL), -Math.sin(AZ)*Math.sin(EL), Math.cos(EL)];
+const eO = [ Math.cos(AZ)*Math.cos(EL),  Math.sin(AZ)*Math.cos(EL), Math.sin(EL)];
+const dot = (a,b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+function proj(v, cxp, cyp, S){
+  return { x: cxp + S*dot(v,eR), y: cyp - S*dot(v,eU), d: dot(v,eO) };
+}
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+/* a circle in 3-space: centre 0, radius r, spanned by orthonormal a,b — split front/back */
+function ring3(svg, a, b, r, cxp, cyp, S, colFront, colBack){
+  let dF = "", dB = "", prev = null;
+  for (let i = 0; i <= 96; i++){
+    const u = i/96 * 2*Math.PI;
+    const v = [r*(Math.cos(u)*a[0] + Math.sin(u)*b[0]),
+               r*(Math.cos(u)*a[1] + Math.sin(u)*b[1]),
+               r*(Math.cos(u)*a[2] + Math.sin(u)*b[2])];
+    const p = proj(v, cxp, cyp, S);
+    const front = p.d >= 0;
+    const start = (prev === null) || (prev !== front);
+    const cmd = (start ? "M" : "L") + p.x + " " + p.y + " ";
+    if (front) dF += cmd; else dB += cmd;
+    prev = front;
+  }
+  if (dB) svg.appendChild(el("path", {d:dB, fill:"none", stroke:colBack, "stroke-width":1.2, "stroke-dasharray":"4 4"}));
+  if (dF) svg.appendChild(el("path", {d:dF, fill:"none", stroke:colFront, "stroke-width":1.5}));
+}
+/* draw a sphere of radius r as three rings */
+function sphere3(svg, r, cxp, cyp, S, colF, colB){
+  ring3(svg,[1,0,0],[0,1,0], r, cxp,cyp,S, colF, colB);
+  ring3(svg,[1,0,0],[0,0,1], r, cxp,cyp,S, colF, colB);
+  ring3(svg,[0,1,0],[0,0,1], r, cxp,cyp,S, colF, colB);
+}
+function arrow3(svg, v, cxp, cyp, S, col){
+  const p = proj(v, cxp, cyp, S);
+  svg.appendChild(el("line", {x1:cxp, y1:cyp, x2:p.x, y2:p.y, stroke:col, "stroke-width":2.4,
+                              "stroke-dasharray": p.d < 0 ? "5 4" : "none"}));
+  svg.appendChild(el("circle", {cx:p.x, cy:p.y, r:5.5, fill:col}));
+  return p;
+}
+function txt(svg, x, y, s, col, size=12, anchor="middle"){
+  const t = el("text", {x, y, fill:col, "font-family":"JetBrains Mono, monospace",
+                        "font-size":size, "text-anchor":anchor});
+  t.textContent = s; svg.appendChild(t); return t;
+}
+
+/* ===================================================================
+   MODULE A — the dictionary: latitude t, longitude n
+   =================================================================== */
+const svgA = document.getElementById("svgA");
+const sT = document.getElementById("sT"), sP = document.getElementById("sP"), sA = document.getElementById("sA");
+
+function drawA(){
+  const t   = +sT.value * D;
+  const pol = +sP.value * D, az = +sA.value * D;
+  const n = dirOf(pol, az);
+  const q = elt(t, n);
+  while (svgA.firstChild) svgA.removeChild(svgA.firstChild);
+
+  /* ---------- LEFT: the ball of vector parts ---------- */
+  const CX = 150, CY = 190, S = 108;
+  txt(svgA, CX, 36, "the vector part (x₁,x₂,x₃)", "#8a90a0", 11.5);
+  sphere3(svgA, 1, CX, CY, S, "#2a2f3a", "#22262f");                 // unit ball
+  const r = Math.abs(Math.sin(t));
+  if (r > 0.02) sphere3(svgA, r, CX, CY, S, "#efa13c", "#7a5a2a");   // latitude sphere
+  else { svgA.appendChild(el("circle",{cx:CX, cy:CY, r:5, fill:"#efa13c"})); }
+  arrow3(svgA, [q[1],q[2],q[3]], CX, CY, S, "#2faf9e");
+  /* the longitude axis n, faint */
+  const pn = proj([n[0]*1.15,n[1]*1.15,n[2]*1.15], CX, CY, S);
+  const pm = proj([-n[0]*1.15,-n[1]*1.15,-n[2]*1.15], CX, CY, S);
+  svgA.appendChild(el("line",{x1:pm.x,y1:pm.y,x2:pn.x,y2:pn.y,stroke:"#6c7fe0","stroke-width":1,
+                              "stroke-dasharray":"3 4",opacity:.75}));
+  txt(svgA, CX, 350, "radius = sin t = " + f2(r), "#efa13c", 12);
+
+  /* ---------- RIGHT: the longitude circle ---------- */
+  const LX = 420, LY = 190, R = 96;
+  txt(svgA, LX, 36, "the longitude L(n)", "#8a90a0", 11.5);
+  svgA.appendChild(el("circle",{cx:LX, cy:LY, r:R, fill:"none", stroke:"#6c7fe0", "stroke-width":1.6}));
+  svgA.appendChild(el("line",{x1:LX-R-14,y1:LY,x2:LX+R+14,y2:LY,stroke:"#2a2f3a","stroke-width":1}));
+  svgA.appendChild(el("line",{x1:LX,y1:LY-R-14,x2:LX,y2:LY+R+14,stroke:"#2a2f3a","stroke-width":1}));
+  /* landmarks */
+  svgA.appendChild(el("circle",{cx:LX+R, cy:LY, r:5, fill:"#e24a3b"}));
+  svgA.appendChild(el("circle",{cx:LX-R, cy:LY, r:5, fill:"#e24a3b"}));
+  txt(svgA, LX+R+4, LY+22, "I", "#e24a3b", 13);
+  txt(svgA, LX-R-4, LY+22, "−I", "#e24a3b", 13);
+  txt(svgA, LX, LY-R-20, "u(n) · trace 0", "#efa13c", 11.5);
+  /* the point at angle t */
+  const px = LX + R*Math.cos(t), py = LY - R*Math.sin(t);
+  svgA.appendChild(el("path",{d:`M${LX+34} ${LY} A 34 34 0 ${t>Math.PI?1:0} 0 ${LX+34*Math.cos(t)} ${LY-34*Math.sin(t)}`,
+                              fill:"none", stroke:"#8a90a0","stroke-width":1.4}));
+  txt(svgA, LX+52*Math.cos(t/2), LY-52*Math.sin(t/2)+4, "t", "#e8eaf0", 13);
+  svgA.appendChild(el("line",{x1:LX,y1:LY,x2:px,y2:py,stroke:"#2faf9e","stroke-width":2}));
+  svgA.appendChild(el("circle",{cx:px, cy:py, r:6, fill:"#2faf9e"}));
+  txt(svgA, LX, 350, "trace = 2 cos t = " + f2(2*Math.cos(t)), "#2faf9e", 12);
+
+  /* ---------- readouts ---------- */
+  document.getElementById("lT").textContent = sT.value + "°";
+  document.getElementById("lP").textContent = sP.value + "°";
+  document.getElementById("lA").textContent = sA.value + "°";
+  document.getElementById("matA").innerHTML = matHTML(q);
+  document.getElementById("ptA").innerHTML =
+      `x = <b>${vecTxt(q)}</b><br>|x| = <b>${f2(Math.hypot(...q))}</b> &nbsp;·&nbsp; tr = <b>${f2(2*q[0])}</b>`;
+
+  let msg;
+  const tt = +sT.value;
+  if (tt === 0)        msg = "north pole — U = I, the identity. Latitude has shrunk to a point.";
+  else if (tt === 180) msg = "south pole — U = −I. A class all by itself.";
+  else if (tt === 90)  msg = "the equator — trace 0, and U² = −I. The fattest latitude.";
+  else                 msg = "latitude t = " + tt + "° · a 2-sphere of radius sin t — one conjugacy class.";
+  document.getElementById("capA").textContent = msg;
+}
+[sT,sP,sA].forEach(s => s.addEventListener("input", drawA));
+document.getElementById("bI").onclick  = () => { sT.value = 0;   drawA(); };
+document.getElementById("bEq").onclick = () => { sT.value = 90;  drawA(); };
+document.getElementById("bMI").onclick = () => { sT.value = 180; drawA(); };
+drawA();
+
+/* ===================================================================
+   MODULE B — conjugation sweeps out the latitude
+   =================================================================== */
+const svgB = document.getElementById("svgB");
+const sT2 = document.getElementById("sT2"), sGP = document.getElementById("sGP"),
+      sGA = document.getElementById("sGA"), sGS = document.getElementById("sGS");
+let trail = [];
+
+function drawB(){
+  const t  = +sT2.value * D;
+  const n0 = dirOf(55*D, 20*D);            // U keeps a fixed longitude
+  const U  = elt(t, n0);
+  const g  = elt(+sGS.value*D, dirOf(+sGP.value*D, +sGA.value*D));
+  const V  = conj(g, U);
+
+  const vU = [U[1],U[2],U[3]], vV = [V[1],V[2],V[3]];
+  if (+sGS.value > 0 && Math.hypot(...vV) > 0.02) trail.push(vV);
+  if (trail.length > 900) trail.shift();
+
+  while (svgB.firstChild) svgB.removeChild(svgB.firstChild);
+  const CX = 280, CY = 190, S = 132;
+
+  sphere3(svgB, 1, CX, CY, S, "#22262f", "#1c1f27");
+  const r = Math.abs(Math.sin(t));
+  if (r > 0.02) sphere3(svgB, r, CX, CY, S, "#efa13c", "#7a5a2a");
+  else svgB.appendChild(el("circle",{cx:CX, cy:CY, r:5, fill:"#efa13c"}));
+
+  trail.forEach(p => {
+    const q = proj(p, CX, CY, S);
+    svgB.appendChild(el("circle",{cx:q.x, cy:q.y, r:2.4, fill:"#e24a3b",
+                                  opacity: q.d >= 0 ? .75 : .22}));
+  });
+  arrow3(svgB, vU, CX, CY, S, "#2faf9e");
+  arrow3(svgB, vV, CX, CY, S, "#e24a3b");
+  txt(svgB, CX, 30, "conjugation can only move the point around the orange sphere", "#8a90a0", 11.5);
+
+  document.getElementById("lT2").textContent = sT2.value + "°";
+  document.getElementById("lGP").textContent = sGP.value + "°";
+  document.getElementById("lGA").textContent = sGA.value + "°";
+  document.getElementById("lGS").textContent = sGS.value + "°";
+  const same = Math.abs(2*U[0] - 2*V[0]) < 1e-9;
+  document.getElementById("trB").innerHTML =
+      `tr U = <b>${f2(2*U[0])}</b> &nbsp; tr gUg⁻¹ = <b>${f2(2*V[0])}</b><br>`
+    + (same ? `<span class="yes">unchanged ✓</span> — same latitude, same class`
+            : `<span class="no">moved</span>`);
+  document.getElementById("ptB").innerHTML =
+      `<b>${vecTxt(V)}</b><br>x₀ fixed · the vector part has been <b>rotated</b>`;
+  document.getElementById("capB").textContent =
+      (+sGS.value === 0) ? "g = I — nothing conjugates yet. Move the last slider."
+                         : "the red point rides the class; the trace never moves.";
+}
+[sT2,sGP,sGA,sGS].forEach(s => s.addEventListener("input", drawB));
+document.getElementById("bClear").onclick = () => { trail = []; drawB(); };
+
+let sweeping = null;
+document.getElementById("bSweep").onclick = () => {
+  if (sweeping) { clearInterval(sweeping); sweeping = null; return; }
+  let k = 0;
+  sweeping = setInterval(() => {
+    k++;
+    sGP.value = Math.round(90 + 88*Math.sin(k/9));
+    sGA.value = Math.round((k*13) % 360);
+    sGS.value = Math.round(20 + 70*Math.abs(Math.sin(k/17)));
+    drawB();
+    if (k > 320){ clearInterval(sweeping); sweeping = null; }
+  }, 40);
+};
+drawB();
+</script>
+</body>
+</html>
