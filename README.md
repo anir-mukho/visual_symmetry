@@ -15,8 +15,10 @@ The objective is to cover the following topics:
 5. [Cyclic group](cyclic-groups.html)
 6. [Permutations](s4-permutations.html)
 7. [Linear groups: Rotations](linear-groups-rigid-motions-version2.html)
-8. More linear groups
-9. Group Actions and Conjugacy Classes 
+8. [Interlude: Conjugation and conjugacy classes](conjugacy-classes.html)
+9. [Linear groups: $SU(2)$](su2-three-sphere.html)
+10. [Spin Homomorphism](spin-homomorphism.html)  
+11. More linear groups
 
 #### Part 2:
 1. An example of a Representation.
