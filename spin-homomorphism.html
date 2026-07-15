@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Spin Homomorphism: SU(2) → SO(3) — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0; --v5:#8f6bd6;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.btn,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:20px;font-weight:600;margin:1.9em 0 .5em;letter-spacing:-.01em}
+  p{margin:0 0 1.05em}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,8vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:18ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  .eq{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+      font-family:"JetBrains Mono",monospace;font-size:15px;margin:1.5em 0;line-height:1.4}
+  .eq .op{color:var(--ink-soft);font-size:17px}
+  .callout{border-left:3px solid var(--v3);background:var(--paper-2);padding:16px 20px;margin:1.5em 0;font-size:17px}
+  .callout b{font-family:"Space Grotesk",sans-serif}
+
+  .fig{background:var(--viewport);border-radius:16px;padding:22px 18px 14px;margin:1.7em 0 .6em;
+       box-shadow:0 24px 60px -30px rgba(20,22,30,.55)}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig .cap{color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;
+            text-align:center;margin-top:12px;line-height:1.6}
+  .fig .cap b{color:#e8eaf0;font-weight:600}
+
+  .module{background:var(--viewport);border-radius:16px;overflow:hidden;margin:10px 0 4px;box-shadow:0 24px 60px -30px rgba(20,22,30,.55);display:grid;grid-template-columns:1fr 340px}
+  @media (max-width:820px){ .module{grid-template-columns:1fr} }
+  .stage{position:relative;background:radial-gradient(120% 120% at 50% 22%,#1b1f2b 0%,var(--viewport) 74%);min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px 34px}
+  .stage svg{width:100%;height:auto;display:block}
+  .stage .cap{position:absolute;left:14px;right:14px;bottom:10px;color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;text-align:center;min-height:1.3em}
+  .panel{background:var(--viewport-2);border-left:1px solid var(--viewport-line);padding:18px;color:#e8eaf0;display:flex;flex-direction:column;gap:11px}
+  @media (max-width:820px){ .panel{border-left:none;border-top:1px solid var(--viewport-line)} }
+  .plbl{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--viewport-soft);margin:2px 0 -6px;display:flex;justify-content:space-between;align-items:baseline}
+  .ctrls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl{flex:1;min-width:74px;appearance:none;border:1px solid var(--viewport-line);background:transparent;color:#c7ccda;border-radius:9px;padding:9px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;font-weight:500;cursor:pointer}
+  .ctrl:hover{background:#1b1f2b;color:#fff}
+  .ctrl.solid{background:#2a3346;color:#fff;border-color:#3a465e}
+  .readout{border:1px solid var(--viewport-line);border-radius:11px;padding:11px 13px;background:#141721}
+  .readout .lbl{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--viewport-soft)}
+  .readout .rr{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#aeb4c4;line-height:1.65;margin-top:5px}
+  .readout .rr b{color:#fff;font-weight:600}
+  .yes{color:var(--v3);font-weight:700}.no{color:var(--v2);font-weight:700}
+  .kern{color:var(--v1);font-weight:700}
+  /* double-cover meter */
+  .meter{margin-top:2px}
+  .meter .bar{height:9px;border-radius:5px;background:#20242e;overflow:hidden;margin:4px 0 2px}
+  .meter .fill{height:100%;border-radius:5px;transition:width .04s linear}
+  .meter .mlbl{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--viewport-soft)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#2a2f3a;border-radius:3px;outline:none;margin:7px 0 2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--v3);cursor:pointer;border:2px solid #12141b}
+  .slval{font-family:"JetBrains Mono",monospace;color:#fff;font-weight:600;font-size:12px}
+
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.6em 0}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:23px;font-weight:600;line-height:1.1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts{grid-template-columns:1fr 1fr} }
+  .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:14px 0 2px;font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 8</b> · The Spin Homomorphism</div>
+    <h1>One sphere turns <span class="swap">another sphere</span>.</h1>
+    <p class="sub">Last module, <span class="mono">SU(2)</span> became the 3-sphere and its equator became a 2-sphere — a single conjugacy class of trace-zero matrices. Now let <span class="mono">SU(2)</span> act on that equator by conjugation. Each element turns the equator like a globe on a spindle — and reading off <em>which</em> turn gives a map <span class="mono">SU(2) → SO(3)</span>, the bridge from the group of matrices to the group of rotations of space.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<!-- ============================ 01 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — THE EQUATOR IS A SPHERE</span>
+    <h2>A conjugacy class you can watch spin</h2>
+
+    <p>On the previous page the <em class="term">equator</em> of <span class="mono">SU(2)</span> was the slice <span class="mono">x₀ = 0</span> — the matrices of <b>trace zero</b>. In coordinates it is an ordinary 2-sphere:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">𝔼 = { u(n) = n₁u₁ + n₂u₂ + n₃u₃ &nbsp;:&nbsp; |n| = 1 } &nbsp;≅&nbsp; S²</span></div>
+
+    <p>Each point of <span class="mono">𝔼</span> is named by a unit vector <span class="mono">n ∈ ℝ³</span>, so <span class="mono">𝔼</span> <em>is</em> the unit sphere of directions. Two things we already know make it the perfect stage:</p>
+
+    <p>First, <span class="mono">𝔼</span> is a single <b>conjugacy class</b> — every trace-zero element is conjugate to every other (Module 7, §04). Second, conjugation <b>preserves the trace</b>, so conjugating a point of <span class="mono">𝔼</span> lands you back on <span class="mono">𝔼</span>. The class is closed under the action that shuffles it. That is exactly the setting in which "conjugation" and "rotation" turn out to be the same word.</p>
+  </div>
+</section>
+
+<!-- ============================ 02 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — CONJUGATION IS A ROTATION</span>
+    <h2>Fix an element g. Watch what it does to the equator.</h2>
+
+    <p>Pick <span class="mono">g ∈ SU(2)</span> and send every point <span class="mono">u(n)</span> of the equator to <span class="mono">g·u(n)·g⁻¹</span>. This shuffles the sphere <span class="mono">𝔼</span> onto itself. Why is the shuffle a <em>rotation</em>, and not some wilder rearrangement? Three properties, no computation:</p>
+
+    <ul>
+      <li>It <b>fixes the centre</b>: the map <span class="mono">u(n) ↦ g u(n) g⁻¹</span> is linear in <span class="mono">n</span>, so the origin stays put.</li>
+      <li>It <b>preserves lengths and angles</b>: conjugation preserves the trace and determinant, and these encode the inner product between directions. Distances on the sphere are untouched.</li>
+      <li>It <b>preserves handedness</b>: nudging <span class="mono">g</span> continuously back to <span class="mono">I</span> deforms the shuffle continuously back to "do nothing," so no mirror-flip can sneak in.</li>
+    </ul>
+
+    <p>A length-preserving, origin-fixing, orientation-preserving map of <span class="mono">ℝ³</span> is precisely a <b>rotation</b> — an element of <span class="mono">SO(3)</span> (Module 5). So each <span class="mono">g</span> rotates the equator. And there is an exact formula for <em>which</em> rotation, the payoff of that stubborn half-angle:</p>
+
+    <div class="callout"><b>The half-angle, repaid.</b> Write <span class="mono">g = cos(θ/2)·I + sin(θ/2)·u(m)</span> — longitude direction <span class="mono">m</span>, latitude <span class="mono">θ/2</span>. Then conjugation by <span class="mono">g</span> rotates the equatorial sphere <b>about the axis <span class="mono">m</span></b> through the angle <b><span class="mono">θ</span></b> — <em>twice</em> the half-angle. The direction that names <span class="mono">g</span> becomes the axis it spins around.</div>
+
+    <p>Everything in the widget below is this one sentence, made moving. Choose an axis <span class="mono">m</span> and slide <span class="mono">g</span> along its longitude. The coloured triad is the image of the three coordinate directions under conjugation — the equator carrying its own signposts as it turns. The blue spindle is <span class="mono">m</span>.</p>
+
+    <div class="module">
+      <div class="stage">
+        <svg id="svgS" viewBox="0 0 560 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="cap" id="capS"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>g along its longitude · t = θ/2</span><span class="slval" id="lT">45°</span></div>
+        <input type="range" id="sT" min="0" max="360" step="1" value="45">
+        <div class="plbl"><span>axis m · polar</span><span class="slval" id="lP">65°</span></div>
+        <input type="range" id="sP" min="0" max="180" step="1" value="65">
+        <div class="plbl"><span>axis m · azimuth</span><span class="slval" id="lA">40°</span></div>
+        <input type="range" id="sA" min="0" max="359" step="1" value="40">
+
+        <div class="readout">
+          <div class="lbl">the element g</div>
+          <div class="rr" id="gInfo"></div>
+        </div>
+
+        <div class="readout">
+          <div class="lbl">the rotation it performs · Φ(g)</div>
+          <div class="meter">
+            <div class="mlbl"><span>g travelled &nbsp;t</span><span id="mT">45°</span></div>
+            <div class="bar"><div class="fill" id="fT" style="background:var(--v3)"></div></div>
+            <div class="mlbl" style="margin-top:6px"><span>space rotated &nbsp;θ = 2t</span><span id="mR">90°</span></div>
+            <div class="bar"><div class="fill" id="fR" style="background:var(--v2)"></div></div>
+          </div>
+          <div class="rr" id="rInfo" style="margin-top:8px"></div>
+        </div>
+
+        <div class="ctrls">
+          <button class="ctrl solid" id="bSpin">spin g</button>
+          <button class="ctrl" id="bNeg">jump to −g</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#e24a3b"></i> e₁</span>
+      <span><i style="background:#2faf9e"></i> e₂</span>
+      <span><i style="background:#efa13c"></i> e₃</span>
+      <span><i style="background:#6c7fe0"></i> axis m</span>
+      <span><i style="background:#565a63"></i> the triad at rest</span>
+    </div>
+    <p class="caption">Watch the meter: the orange bar always runs at double the teal bar. When you push <span class="mono">g</span> from <span class="mono">I</span> (t = 0) out to <span class="mono">−I</span> (t = 180°), the equator completes a <em>full</em> 360° turn and the triad lands exactly where it began — the first hint that <span class="mono">I</span> and <span class="mono">−I</span> do the very same thing to space.</p>
+  </div>
+</section>
+
+<!-- ============================ 03 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — THE MAP HAS A NAME</span>
+    <h2>Φ : SU(2) → SO(3), the spin homomorphism</h2>
+
+    <p>Reading off each element's rotation defines a map</p>
+
+    <div class="eq"><span class="mono" style="font-size:16.5px">Φ : SU(2) → SO(3), &nbsp; g ⟼ ( the rotation u(n) ↦ g u(n) g⁻¹ )</span></div>
+
+    <p>and it is a <em class="term">homomorphism</em> — it respects multiplication — for a reason that needs no algebra beyond bookkeeping. Doing <span class="mono">g</span> then <span class="mono">h</span> by conjugation is</p>
+
+    <div class="eq"><span class="mono">h ( g u g⁻¹ ) h⁻¹ = (hg) u (hg)⁻¹</span></div>
+
+    <p>i.e. conjugating by <span class="mono">g</span> and then by <span class="mono">h</span> is the same as conjugating once by <span class="mono">hg</span>. In rotation language, <b>the rotation of <span class="mono">h</span> after the rotation of <span class="mono">g</span> equals the rotation of <span class="mono">hg</span></b>:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">Φ(h) ∘ Φ(g) = Φ(hg)</span></div>
+
+    <p>Composition on the left, multiplication on the right — the defining property of a homomorphism, obtained for free from the shape of <span class="mono">g u g⁻¹</span>.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Composition of two conjugations equals conjugation by the product">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto"><path d="M0,0 L7,3.2 L0,6.4 z" fill="#8a90a0"/></marker>
+        </defs>
+        <g font-family="JetBrains Mono, monospace" font-size="13" fill="#e8eaf0">
+          <circle cx="70" cy="105" r="30" fill="none" stroke="#565a63" stroke-width="1.6"/>
+          <text x="70" y="110" text-anchor="middle">𝔼</text>
+          <circle cx="300" cy="105" r="30" fill="none" stroke="#2faf9e" stroke-width="1.6"/>
+          <text x="300" y="110" text-anchor="middle">𝔼</text>
+          <circle cx="530" cy="105" r="30" fill="none" stroke="#efa13c" stroke-width="1.6"/>
+          <text x="530" y="110" text-anchor="middle">𝔼</text>
+          <line x1="108" y1="105" x2="262" y2="105" stroke="#8a90a0" stroke-width="1.5" marker-end="url(#ar)"/>
+          <line x1="338" y1="105" x2="492" y2="105" stroke="#8a90a0" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="185" y="92" text-anchor="middle" fill="#2faf9e">Φ(g)</text>
+          <text x="415" y="92" text-anchor="middle" fill="#efa13c">Φ(h)</text>
+          <path d="M108,150 Q300,205 492,150" fill="none" stroke="#6c7fe0" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="300" y="196" text-anchor="middle" fill="#6c7fe0">Φ(hg) — one rotation, same result</text>
+        </g>
+      </svg>
+      <div class="cap">Two turns of the equator compose into one. Because the two conjugations collapse to conjugation by <b>hg</b>, the map to <span class="mono">SO(3)</span> carries products to products.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 04 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — ONTO, AND TWO-TO-ONE</span>
+    <h2>Every rotation is hit — each one exactly twice</h2>
+
+    <p><b>Surjective.</b> Name any rotation of space by its axis <span class="mono">m</span> and angle <span class="mono">θ</span>. The element <span class="mono">g = cos(θ/2)·I + sin(θ/2)·u(m)</span> produces exactly that rotation. As <span class="mono">m</span> ranges over all directions and <span class="mono">θ</span> over <span class="mono">[0, 2π)</span>, we reach <em>every</em> element of <span class="mono">SO(3)</span>. Nothing in the rotation group is missed — <span class="mono">Φ</span> is onto.</p>
+
+    <p><b>The kernel.</b> Which <span class="mono">g</span> rotate the equator by <em>nothing at all</em>? A <span class="mono">g</span> that fixes every point <span class="mono">u(n)</span> satisfies <span class="mono">g u(n) g⁻¹ = u(n)</span>, i.e. <span class="mono">g</span> commutes with every trace-zero matrix — and hence with everything in <span class="mono">SU(2)</span>. The only matrices that commute with all of <span class="mono">SU(2)</span> are the two scalars:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16px">ker Φ = { I, −I } = Z(SU(2))</span></div>
+
+    <p>the <em class="term">centre</em> of the group — the two poles of the 3-sphere. So <span class="mono">Φ</span> collapses precisely these two elements to the identity rotation, and by the homomorphism property this means <span class="mono">g</span> and <span class="mono">−g</span> always deliver the <em>same</em> rotation. Press <span class="mono">jump to −g</span> in the widget above: the triad does not budge. Every rotation of space has exactly <b>two</b> preimages in <span class="mono">SU(2)</span>, the antipodal pair <span class="mono">±g</span>.</p>
+
+    <div class="facts">
+      <div><div class="n" style="color:var(--v3)">onto</div><div class="k">every rotation reached</div></div>
+      <div><div class="n" style="color:var(--v1)">{±I}</div><div class="k">kernel = centre</div></div>
+      <div><div class="n" style="color:var(--v2)">2 : 1</div><div class="k">g and −g agree</div></div>
+      <div><div class="n" style="color:var(--v4)">S³ / ±</div><div class="k">= SO(3)</div></div>
+    </div>
+
+    <p>Bundling these facts, the first isomorphism theorem reads the quotient straight off:</p>
+
+    <div class="eq"><span class="mono" style="font-size:16.5px">SO(3) ≅ SU(2) / {±I} = S³ / ±</span></div>
+
+    <p><span class="mono">SU(2)</span> is a <em class="term">double cover</em> of the rotation group: two copies of <span class="mono">SO(3)</span>, glued into a single seamless sphere. This is what people mean when they call <span class="mono">SU(2)</span> the <em class="term">Spin group</em> <span class="mono">Spin(3)</span>.</p>
+
+    <h3>Why 720°, not 360°</h3>
+    <p>The doubling is not a curiosity; it is measurable. Because the rotation angle is <span class="mono">2t</span>, a path in <span class="mono">SU(2)</span> that goes from <span class="mono">I</span> all the way to <span class="mono">−I</span> — only <em>half</em>-way round the 3-sphere — already turns space through a full <span class="mono">360°</span>. To bring <span class="mono">g</span> itself home to <span class="mono">I</span> you must go the whole way round, and space then turns through <span class="mono">720°</span>. A rotation by <span class="mono">360°</span> returns the world but <em>not</em> its spin-state; only <span class="mono">720°</span> restores both. Slide from <span class="mono">t = 0</span> to <span class="mono">t = 360°</span> below and count the turns.</p>
+
+    <div class="module">
+      <div class="stage">
+        <svg id="svgL" viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="cap" id="capL"></div>
+      </div>
+      <div class="panel">
+        <div class="plbl"><span>walk g around its longitude</span><span class="slval" id="lW">0°</span></div>
+        <input type="range" id="sW" min="0" max="360" step="1" value="0">
+        <div class="readout">
+          <div class="lbl">g on the 3-sphere</div>
+          <div class="rr" id="wG"></div>
+        </div>
+        <div class="readout">
+          <div class="lbl">turns completed by space</div>
+          <div class="rr" id="wR"></div>
+        </div>
+        <div class="ctrls">
+          <button class="ctrl solid" id="bWalk">walk once around</button>
+          <button class="ctrl" id="bWreset">reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#6c7fe0"></i> g's longitude in SU(2)</span>
+      <span><i style="background:#e24a3b"></i> current g</span>
+      <span><i style="background:#efa13c"></i> a landmark on the turning equator</span>
+    </div>
+    <p class="caption">One trip of <span class="mono">g</span> around its circle (<span class="mono">I → 𝔼 → −I → 𝔼 → I</span>) spins the equator through <span class="mono">720°</span> — two full revolutions. Halfway, at <span class="mono">−I</span>, space has already come back once. The circle in <span class="mono">SU(2)</span> wraps <em>twice</em> around its image circle in <span class="mono">SO(3)</span>.</p>
+  </div>
+</section>
+
+<!-- ============================ 05 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — WHERE THIS LANDS</span>
+    <h2>What the bridge is for</h2>
+
+    <p>The spin homomorphism is the reason <span class="mono">SU(2)</span> matters far beyond its own definition. Every rotation of ordinary space lifts to <span class="mono">SU(2)</span>, but with a two-valued ambiguity <span class="mono">±g</span> — and quantum mechanics discovered that nature keeps track of that sign. Electrons, protons and neutrons transform under the <span class="mono">SU(2)</span> above the rotation, not the rotation itself; turn one through <span class="mono">360°</span> and its wavefunction returns negated. This is <em class="term">spin ½</em>, and it is why the group carries that name.</p>
+
+    <p>For our course the map is the gateway into representation theory. The rotations of space — the ordinary vectors, the <span class="mono">SO(3)</span> side — are one representation; the two-valued spinors — the <span class="mono">SU(2)</span> side — are another, invisible from below. Part 2 will build every representation of <span class="mono">SU(2)</span> systematically, indexed by that half-integer, and the conjugacy classes we labelled by a single angle <span class="mono">θ</span> will become the columns of its character table.</p>
+
+    <div class="callout"><b>The through-line, in one breath.</b> A group became a sphere (Module 7). Its conjugacy classes became the sphere's latitudes. Its equatorial latitude, acted on by conjugation, became <em>space itself, turning</em> — and reading that turn built the two-to-one bridge <span class="mono">SU(2) → SO(3)</span>. Conjugation, the abstract idea from Module 6, turned out to be nothing more exotic than spinning a globe.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 8 of Part 1 · The Spin Homomorphism</p>
+    <p>Every rotation on this page is computed live by conjugating the three coordinate directions <span class="mono">u(e₁), u(e₂), u(e₃)</span> by the chosen matrix <span class="mono">g</span> — the moving triad you see is literally <span class="mono">g u(eᵢ) g⁻¹</span>. The doubling of the angle is not drawn in; it emerges from the matrices themselves.</p>
+  </div>
+</footer>
+
+<script>
+/* ===================================================================
+   Spin homomorphism.  Unit quaternion g = [cos t, sin t · m]
+   acts on a pure quaternion [0,v] by conjugation g[0,v]g⁻¹,
+   producing the rotation of v about m through 2t.  All triads below
+   are computed by ACTUAL conjugation, so the geometry cannot lie.
+   =================================================================== */
+const NS="http://www.w3.org/2000/svg", D=Math.PI/180;
+function qmul(p,q){return[
+  p[0]*q[0]-p[1]*q[1]-p[2]*q[2]-p[3]*q[3],
+  p[0]*q[1]+p[1]*q[0]+p[2]*q[3]-p[3]*q[2],
+  p[0]*q[2]-p[1]*q[3]+p[2]*q[0]+p[3]*q[1],
+  p[0]*q[3]+p[1]*q[2]-p[2]*q[1]+p[3]*q[0]];}
+const qinv=q=>[q[0],-q[1],-q[2],-q[3]];
+const conjV=(g,v)=>qmul(qmul(g,[0,v[0],v[1],v[2]]),qinv(g)).slice(1);
+const dirOf=(p,a)=>[Math.sin(p)*Math.cos(a),Math.sin(p)*Math.sin(a),Math.cos(p)];
+const elt=(t,m)=>[Math.cos(t),Math.sin(t)*m[0],Math.sin(t)*m[1],Math.sin(t)*m[2]];
+const f2=v=>(Math.abs(v)<5e-3?"0.00":v.toFixed(2));
+
+/* orthographic projection */
+const AZ=32*D, EL=16*D;
+const eR=[-Math.sin(AZ),Math.cos(AZ),0];
+const eU=[-Math.cos(AZ)*Math.sin(EL),-Math.sin(AZ)*Math.sin(EL),Math.cos(EL)];
+const eO=[ Math.cos(AZ)*Math.cos(EL), Math.sin(AZ)*Math.cos(EL), Math.sin(EL)];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const P=(v,cx,cy,S)=>({x:cx+S*dot(v,eR),y:cy-S*dot(v,eU),d:dot(v,eO)});
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function txt(svg,x,y,s,c,sz=12,an="middle"){const t=el("text",{x,y,fill:c,"font-family":"JetBrains Mono, monospace","font-size":sz,"text-anchor":an});t.textContent=s;svg.appendChild(t);return t;}
+function ring(svg,a,b,r,cx,cy,S,cF,cB){
+  let dF="",dB="",prev=null;
+  for(let i=0;i<=100;i++){const u=i/100*2*Math.PI;
+    const v=[r*(Math.cos(u)*a[0]+Math.sin(u)*b[0]),r*(Math.cos(u)*a[1]+Math.sin(u)*b[1]),r*(Math.cos(u)*a[2]+Math.sin(u)*b[2])];
+    const p=P(v,cx,cy,S),front=p.d>=0,start=(prev===null)||(prev!==front);
+    const c=(start?"M":"L")+p.x.toFixed(1)+" "+p.y.toFixed(1)+" ";
+    if(front)dF+=c;else dB+=c;prev=front;}
+  if(dB)svg.appendChild(el("path",{d:dB,fill:"none",stroke:cB,"stroke-width":1.1,"stroke-dasharray":"4 4"}));
+  if(dF)svg.appendChild(el("path",{d:dF,fill:"none",stroke:cF,"stroke-width":1.4}));
+}
+function globe(svg,cx,cy,S,cF,cB){
+  ring(svg,[1,0,0],[0,1,0],1,cx,cy,S,cF,cB);
+  ring(svg,[1,0,0],[0,0,1],1,cx,cy,S,cF,cB);
+  ring(svg,[0,1,0],[0,0,1],1,cx,cy,S,cF,cB);
+  // a few extra latitudes for legibility
+  for(const h of [0.5,-0.5]){const r=Math.sqrt(1-h*h);
+    let d="";for(let i=0;i<=60;i++){const u=i/60*2*Math.PI;const v=[r*Math.cos(u),r*Math.sin(u),h];
+      const p=P(v,cx,cy,S);d+=(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)+" ";}
+    svg.appendChild(el("path",{d,fill:"none",stroke:cB,"stroke-width":.9,opacity:.5}));}
+}
+function arrow(svg,v,cx,cy,S,col,lab){
+  const p=P(v,cx,cy,S),back=p.d<0;
+  svg.appendChild(el("line",{x1:cx,y1:cy,x2:p.x,y2:p.y,stroke:col,"stroke-width":2.6,opacity:back?.5:1,
+                             "stroke-dasharray":back?"5 4":"none"}));
+  svg.appendChild(el("circle",{cx:p.x,cy:p.y,r:6,fill:col,opacity:back?.55:1}));
+  if(lab)txt(svg,p.x+(p.x>cx?11:-11),p.y+4,lab,col,12,p.x>cx?"start":"end");
+}
+function diameter(svg,m,cx,cy,S,col){
+  const a=P([m[0]*1.18,m[1]*1.18,m[2]*1.18],cx,cy,S), b=P([-m[0]*1.18,-m[1]*1.18,-m[2]*1.18],cx,cy,S);
+  svg.appendChild(el("line",{x1:b.x,y1:b.y,x2:a.x,y2:a.y,stroke:col,"stroke-width":1.6,"stroke-dasharray":"2 4",opacity:.85}));
+  svg.appendChild(el("circle",{cx:a.x,cy:a.y,r:4,fill:col}));
+}
+
+/* ======================= MAIN VISUALISER ======================= */
+const svgS=document.getElementById("svgS");
+const sT=document.getElementById("sT"),sP=document.getElementById("sP"),sA=document.getElementById("sA");
+const E1=[1,0,0],E2=[0,1,0],E3=[0,0,1];
+
+function drawS(){
+  const t=+sT.value*D, m=dirOf(+sP.value*D,+sA.value*D), g=elt(t,m);
+  while(svgS.firstChild)svgS.removeChild(svgS.firstChild);
+  const CX=280,CY=200,S=150;
+  txt(svgS,CX,34,"the equator 𝔼 ≅ S²  —  conjugation turns it",  "#8a90a0",11.5);
+  globe(svgS,CX,CY,S,"#2a2f3a","#20242e");
+  diameter(svgS,m,CX,CY,S,"#6c7fe0");
+  // ghost triad at rest
+  [[E1,"#4a4f5a"],[E2,"#4a4f5a"],[E3,"#4a4f5a"]].forEach(([v,c])=>{
+    const p=P(v,CX,CY,S);
+    svgS.appendChild(el("circle",{cx:p.x,cy:p.y,r:3,fill:c,opacity:.7}));});
+  // moving triad = g eᵢ g⁻¹, drawn back-to-front
+  const tri=[[conjV(g,E1),"#e24a3b","e₁"],[conjV(g,E2),"#2faf9e","e₂"],[conjV(g,E3),"#efa13c","e₃"]];
+  tri.sort((a,b)=>P(a[0],CX,CY,S).d-P(b[0],CX,CY,S).d);
+  tri.forEach(([v,c,l])=>arrow(svgS,v,CX,CY,S,c,l));
+
+  const tt=+sT.value, ang=(2*tt)%360, turns=Math.floor(2*tt/360);
+  document.getElementById("lT").textContent=tt+"°";
+  document.getElementById("lP").textContent=sP.value+"°";
+  document.getElementById("lA").textContent=sA.value+"°";
+  document.getElementById("gInfo").innerHTML=
+    `trace = 2cos t = <b>${f2(2*g[0])}</b><br>x = (${f2(g[0])}, ${f2(g[1])}, ${f2(g[2])}, ${f2(g[3])})`;
+  document.getElementById("mT").textContent=tt+"°";
+  document.getElementById("mR").textContent=(2*tt)+"°";
+  document.getElementById("fT").style.width=(tt/360*100)+"%";
+  document.getElementById("fR").style.width=(2*tt/720*100)+"%";
+
+  let msg;
+  if(tt===0)      msg=`<span class="kern">g = I</span> — the identity rotation. Nothing moves.`;
+  else if(tt===180) msg=`<span class="kern">g = −I</span> — also the identity rotation (a full 360° turn).`;
+  else if(tt===360) msg=`<span class="kern">g = I</span> again — space has turned 720°, twice around.`;
+  else msg=`rotate about m by θ = 2t = <b>${(2*tt)%360===0?360:(2*tt)%360}°</b>${turns?` &nbsp;(+${turns}·360°)`:""}`;
+  document.getElementById("rInfo").innerHTML=msg;
+
+  let cap;
+  if(tt===0||tt===360) cap="g = I  ·  the equator sits still";
+  else if(tt===180)    cap="g = −I  ·  a full turn — back to the start, yet g ≠ I";
+  else cap="conjugation spins 𝔼 about the blue axis m";
+  document.getElementById("capS").textContent=cap;
+}
+[sT,sP,sA].forEach(s=>s.addEventListener("input",drawS));
+document.getElementById("bNeg").onclick=()=>{ sT.value=(+sT.value+180)%360; drawS();
+  document.getElementById("capS").textContent="jumped to −g — identical rotation (kernel {±I})"; };
+let spin=null;
+document.getElementById("bSpin").onclick=()=>{
+  if(spin){clearInterval(spin);spin=null;return;}
+  spin=setInterval(()=>{ sT.value=(+sT.value+2)%360; drawS(); },40);
+};
+drawS();
+
+/* ======================= DOUBLE-COVER LOOP ======================= */
+const svgL=document.getElementById("svgL");
+const sW=document.getElementById("sW");
+const mL=dirOf(90*D,0);         // fixed axis (out of screen-ish) for the loop demo
+const landmark=[0,1,0];         // a point on the equator to track
+
+function drawL(){
+  const w=+sW.value, t=w*D, g=elt(t,mL);
+  while(svgL.firstChild)svgL.removeChild(svgL.firstChild);
+
+  /* LEFT: g on its longitude circle in SU(2) */
+  const LX=150,LY=190,R=92;
+  txt(svgL,LX,40,"g on its longitude in SU(2)","#8a90a0",11.5);
+  svgL.appendChild(el("circle",{cx:LX,cy:LY,r:R,fill:"none",stroke:"#6c7fe0","stroke-width":1.6}));
+  svgL.appendChild(el("circle",{cx:LX+R,cy:LY,r:5,fill:"#e24a3b"}));
+  svgL.appendChild(el("circle",{cx:LX-R,cy:LY,r:5,fill:"#e24a3b"}));
+  txt(svgL,LX+R+4,LY+22,"I","#e24a3b",13,"start"); txt(svgL,LX-R-6,LY+22,"−I","#e24a3b",13,"end");
+  const gx=LX+R*Math.cos(t),gy=LY-R*Math.sin(t);
+  svgL.appendChild(el("circle",{cx:gx,cy:gy,r:7,fill:"#e24a3b"}));
+  txt(svgL,LX,320,"t = "+w+"°  ·  trace 2cos t = "+f2(2*Math.cos(t)),"#c7ccda",12);
+
+  /* RIGHT: the equator turning, tracking one landmark */
+  const CX=420,CY=190,S=110;
+  txt(svgL,CX,40,"the equator 𝔼 turning","#8a90a0",11.5);
+  globe(svgL,CX,CY,S,"#2a2f3a","#20242e");
+  diameter(svgL,mL,CX,CY,S,"#6c7fe0");
+  // trail of the landmark
+  for(let k=0;k<=w;k+=6){const v=conjV(elt(k*D,mL),landmark);const p=P(v,CX,CY,S);
+    svgL.appendChild(el("circle",{cx:p.x,cy:p.y,r:2,fill:"#efa13c",opacity:p.d>=0?.5:.16}));}
+  arrow(svgL,conjV(g,landmark),CX,CY,S,"#efa13c",null);
+
+  const turns=(2*w/360);
+  document.getElementById("lW").textContent=w+"°";
+  document.getElementById("wG").innerHTML=
+    (w===0?`at <span class="kern">I</span> (start)`:
+     w<180?`between I and −I`:
+     w===180?`at <span class="kern">−I</span> (halfway round)`:
+     w<360?`between −I and I`:`back at <span class="kern">I</span> (full loop)`);
+  document.getElementById("wR").innerHTML=
+    `θ = 2t = <b>${2*w}°</b> &nbsp;=&nbsp; <b>${turns.toFixed(2)}</b> full turns`
+    + (w===180?`<br><span class="yes">one turn done, but g is only halfway</span>`
+      :w>=360?`<br><span class="yes">two turns — the loop wrapped twice</span>`:``);
+  document.getElementById("capL").textContent =
+    w===0?"start at the identity":
+    w===180?"g reached −I; the equator already came home once":
+    w>=360?"g home at I; the equator turned twice — a 2:1 cover":
+    "half a lap of g = a full turn of space";
+}
+sW.addEventListener("input",drawL);
+document.getElementById("bWreset").onclick=()=>{ sW.value=0; drawL(); };
+let walk=null;
+document.getElementById("bWalk").onclick=()=>{
+  if(walk){clearInterval(walk);walk=null;}
+  sW.value=0; drawL();
+  walk=setInterval(()=>{ let v=+sW.value+3; if(v>360){v=360;clearInterval(walk);walk=null;} sW.value=v; drawL(); },34);
+};
+drawL();
+</script>
+</body>
+</html>

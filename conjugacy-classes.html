@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Conjugation and Conjugacy Classes — Group Theory by Example</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3f4f1; --paper-2:#e9ebe6; --ink:#181a20; --ink-soft:#565a63; --line:#d6d8d1;
+    --viewport:#12141b; --viewport-2:#181b24; --viewport-line:#2a2f3a; --viewport-soft:#8a90a0;
+    --v1:#e24a3b; --v2:#efa13c; --v3:#2faf9e; --v4:#6c7fe0; --v5:#8f6bd6;
+    --link:#37489f; --maxw:920px; --gutter:clamp(20px,5vw,64px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Source Serif 4",Georgia,serif;font-size:19px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter)}
+  h1,h2,h3,.eyebrow,.chip,.mono,.tag{font-family:"Space Grotesk",system-ui,sans-serif}
+  .mono,code{font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:clamp(26px,4vw,36px);line-height:1.12;letter-spacing:-.02em;font-weight:600;margin:0 0 .5em}
+  h3{font-size:20px;font-weight:600;margin:1.9em 0 .5em;letter-spacing:-.01em}
+  p{margin:0 0 1.05em}
+  em.term{font-style:normal;font-weight:600;font-family:"Space Grotesk",sans-serif;font-size:.94em}
+  .num{color:var(--v1);font-weight:600}
+
+  header.hero{padding:clamp(56px,11vw,120px) 0 clamp(40px,7vw,72px);border-bottom:1px solid var(--line)}
+  .hero .kicker{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:26px}
+  .hero .kicker b{color:var(--ink);font-weight:600}
+  h1{font-size:clamp(36px,8vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:0 0 .35em;max-width:17ch}
+  h1 .swap{color:var(--v3)}
+  .hero .sub{max-width:56ch;color:var(--ink-soft);font-size:clamp(18px,2.3vw,21px)}
+  .dots{display:flex;gap:9px;margin:30px 0 0}
+  .dots span{width:15px;height:15px;border-radius:50%}
+  .d1{background:var(--v1)}.d2{background:var(--v2)}.d3{background:var(--v3)}.d4{background:var(--v4)}
+
+  section{padding:clamp(44px,7vw,80px) 0}
+  section + section{border-top:1px solid var(--line)}
+  .sec-tag{font-family:"JetBrains Mono",monospace;font-size:12.5px;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:14px;display:block}
+
+  .eq{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;
+      font-family:"JetBrains Mono",monospace;font-size:15px;margin:1.5em 0;line-height:1.4}
+  .eq .op{color:var(--ink-soft);font-size:17px}
+  .callout{border-left:3px solid var(--v3);background:var(--paper-2);padding:16px 20px;margin:1.5em 0;font-size:17px}
+  .callout b{font-family:"Space Grotesk",sans-serif}
+
+  /* static figure shell — same dark stage as the interactive modules */
+  .fig{background:var(--viewport);border-radius:16px;padding:22px 18px 14px;margin:1.7em 0 .6em;
+       box-shadow:0 24px 60px -30px rgba(20,22,30,.55)}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig .cap{color:var(--viewport-soft);font-family:"JetBrains Mono",monospace;font-size:12px;
+            text-align:center;margin-top:12px;line-height:1.6}
+  .fig .cap b{color:#e8eaf0;font-weight:600}
+
+  table.ctab{width:100%;border-collapse:collapse;margin:1.2em 0;font-size:15px}
+  table.ctab th,table.ctab td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line)}
+  table.ctab th{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  table.ctab td.mono,table.ctab td .mono{font-family:"JetBrains Mono",monospace}
+  .cdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:1.6em 0}
+  .facts div{background:var(--paper);padding:16px 18px}
+  .facts .n{font-family:"Space Grotesk",sans-serif;font-size:26px;font-weight:600;line-height:1.1}
+  .facts .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:6px;text-transform:uppercase}
+  @media (max-width:560px){ .facts{grid-template-columns:1fr 1fr} }
+  .caption{color:var(--ink-soft);font-size:15px;margin-top:14px;font-style:italic}
+  footer{border-top:1px solid var(--line);padding:44px 0 70px;color:var(--ink-soft);font-size:15px}
+  footer .mono{font-family:"JetBrains Mono",monospace;font-size:13px}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">GROUP THEORY BY EXAMPLE · <b>Module 6</b> · Conjugation</div>
+    <h1>The same move, seen from a <span class="swap">different seat</span>.</h1>
+    <p class="sub">Turn the cube 90° about the front face; turn it 90° about the top face. Different elements of the group — but not really different <em>moves</em>. One is the other, watched by someone who has walked a quarter of the way round the table. Making that sentence precise gives us <span class="mono">g x g⁻¹</span>, and it sorts every group into families called conjugacy classes. This is the last idea we need before the linear groups.</p>
+    <div class="dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span></div>
+  </div>
+</header>
+
+<!-- ============================ 01 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">01 — THE CHANGE-OF-VIEWPOINT FORMULA</span>
+    <h2>Move there, act, move back</h2>
+
+    <p>Let <span class="mono">x</span> be the move you know how to do, and let <span class="mono">g</span> be some other element of the group — think of <span class="mono">g</span> as "carrying the object into a new position." Then</p>
+
+    <div class="eq"><span class="mono" style="font-size:19px">x<sup>g</sup> &nbsp;=&nbsp; g x g⁻¹</span></div>
+
+    <p>reads right-to-left as a three-step recipe: <em class="term">undo g</em>, then <em class="term">do x</em>, then <em class="term">redo g</em>. It is the same move <span class="mono">x</span>, performed in the position that <span class="mono">g</span> puts you in. Two elements related this way are called <em class="term">conjugate</em>, written <span class="mono">x ∼ gxg⁻¹</span>.</p>
+
+    <div class="callout"><b>The one line that explains everything.</b> If <span class="mono">x</span> fixes a point <span class="mono">p</span>, then <span class="mono">gxg⁻¹</span> fixes the point <span class="mono">g(p)</span>. Check it: <span class="mono">(gxg⁻¹)(gp) = gx(p) = g(p)</span>. So conjugating does not change <em>what</em> the move does — it only <em>transports</em> the axis, the mirror, the fixed points, along with the object.</div>
+
+    <p>Watch it on a triangle. The reflection <span class="mono">s₁</span> holds vertex&nbsp;1 still and swaps the other two. The rotation <span class="mono">r = (1 2 3)</span> carries vertex&nbsp;1 to vertex&nbsp;2. Conjugating <span class="mono">s₁</span> by <span class="mono">r</span> must therefore give the reflection that holds vertex&nbsp;<b>2</b> still — the mirror line rides along with the vertex it passes through.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A reflection axis of a triangle carried onto another axis by conjugation">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+            <path d="M0,0 L7,3.2 L0,6.4 z" fill="#8a90a0"/>
+          </marker>
+        </defs>
+        <!-- LEFT triangle -->
+        <line x1="140" y1="30" x2="140" y2="222" stroke="#efa13c" stroke-width="2" stroke-dasharray="6 5"/>
+        <polygon points="140,60 209,180 71,180" fill="none" stroke="#e8eaf0" stroke-width="2"/>
+        <circle cx="140" cy="60" r="6" fill="#2faf9e"/><circle cx="209" cy="180" r="6" fill="#6c7fe0"/><circle cx="71" cy="180" r="6" fill="#e24a3b"/>
+        <text x="140" y="42" fill="#2faf9e" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">1</text>
+        <text x="228" y="186" fill="#6c7fe0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">2</text>
+        <text x="52" y="186" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">3</text>
+        <text x="140" y="240" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">s₁ = (2 3)</text>
+        <!-- ARROW -->
+        <line x1="270" y1="120" x2="370" y2="120" stroke="#8a90a0" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="320" y="106" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">conjugate by</text>
+        <text x="320" y="146" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">r = (1 2 3)</text>
+        <!-- RIGHT triangle -->
+        <line x1="426" y1="76" x2="594" y2="173" stroke="#efa13c" stroke-width="2" stroke-dasharray="6 5"/>
+        <polygon points="510,60 579,180 441,180" fill="none" stroke="#e8eaf0" stroke-width="2"/>
+        <circle cx="510" cy="60" r="6" fill="#2faf9e"/><circle cx="579" cy="180" r="6" fill="#6c7fe0"/><circle cx="441" cy="180" r="6" fill="#e24a3b"/>
+        <text x="510" y="42" fill="#2faf9e" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">1</text>
+        <text x="598" y="186" fill="#6c7fe0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">2</text>
+        <text x="422" y="186" fill="#e24a3b" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">3</text>
+        <text x="510" y="240" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">r s₁ r⁻¹ = s₂ = (1 3)</text>
+      </svg>
+      <div class="cap">The mirror is <b>not</b> destroyed and rebuilt — it is <b>carried</b>. <span style="color:#2faf9e">Vertex 1</span> goes to <span style="color:#6c7fe0">vertex 2</span>, so the axis through 1 goes to the axis through 2.</div>
+    </div>
+
+    <p>All three reflections of the triangle are conjugate to one another; the two rotations <span class="mono">r, r²</span> are conjugate to each other; the identity is alone. Those are the <em class="term">conjugacy classes</em> of <span class="mono">S₃ ≅ D₃</span>, of sizes <span class="mono">1 + 2 + 3 = 6</span>.</p>
+  </div>
+</section>
+
+<!-- ============================ 02 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">02 — THE CLEANEST EXAMPLE</span>
+    <h2>In S<sub style="font-size:.6em">n</sub>, conjugation is just relabelling</h2>
+
+    <p>For permutations the rule needs no thought at all. To conjugate a cycle by <span class="mono">g</span>, apply <span class="mono">g</span> to every symbol inside it:</p>
+
+    <div class="eq"><span class="mono" style="font-size:17px">g (a b c) g⁻¹ &nbsp;=&nbsp; ( g(a) &nbsp; g(b) &nbsp; g(c) )</span></div>
+
+    <p>Take <span class="mono">x = (1 2 3)</span> and <span class="mono">g = (1 4)</span>, the swap of 1 and 4. Then <span class="mono">gxg⁻¹ = (4 2 3)</span>. The picture of the permutation — one triangle-shaped cycle, one fixed dot — is untouched; only the names on the dots have moved.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Conjugating the cycle (1 2 3) by the swap (1 4) renames its symbols">
+        <defs>
+          <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+            <path d="M0,0 L7,3.2 L0,6.4 z" fill="#8a90a0"/>
+          </marker>
+          <marker id="cyc" markerWidth="8" markerHeight="8" refX="6" refY="2.8" orient="auto">
+            <path d="M0,0 L6,2.8 L0,5.6 z" fill="#2faf9e"/>
+          </marker>
+        </defs>
+        <!-- LEFT cycle -->
+        <path d="M110,70 A45,45 0 0,1 148,136" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <path d="M140,150 A45,45 0 0,1 66,150" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <path d="M58,136 A45,45 0 0,1 96,70" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <circle cx="103" cy="60" r="14" fill="#181b24" stroke="#e8eaf0" stroke-width="1.6"/>
+        <circle cx="155" cy="150" r="14" fill="#181b24" stroke="#e8eaf0" stroke-width="1.6"/>
+        <circle cx="51" cy="150" r="14" fill="#181b24" stroke="#e8eaf0" stroke-width="1.6"/>
+        <text x="103" y="65" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">1</text>
+        <text x="155" y="155" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">2</text>
+        <text x="51" y="155" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">3</text>
+        <circle cx="240" cy="105" r="14" fill="#181b24" stroke="#565a63" stroke-width="1.6"/>
+        <text x="240" y="110" fill="#8a90a0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">4</text>
+        <path d="M240,86 A16,16 0 1,1 227,92" fill="none" stroke="#565a63" stroke-width="1.4"/>
+        <text x="140" y="212" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13.5" text-anchor="middle">x = (1 2 3)</text>
+
+        <!-- ARROW -->
+        <line x1="300" y1="105" x2="400" y2="105" stroke="#8a90a0" stroke-width="1.6" marker-end="url(#ar2)"/>
+        <text x="350" y="91" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">conjugate by</text>
+        <text x="350" y="131" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">g = (1 4)</text>
+
+        <!-- RIGHT cycle: same picture, labels 1 and 4 swapped -->
+        <path d="M470,70 A45,45 0 0,1 508,136" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <path d="M500,150 A45,45 0 0,1 426,150" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <path d="M418,136 A45,45 0 0,1 456,70" fill="none" stroke="#2faf9e" stroke-width="1.8" marker-end="url(#cyc)"/>
+        <circle cx="463" cy="60" r="14" fill="#181b24" stroke="#efa13c" stroke-width="1.8"/>
+        <circle cx="515" cy="150" r="14" fill="#181b24" stroke="#e8eaf0" stroke-width="1.6"/>
+        <circle cx="411" cy="150" r="14" fill="#181b24" stroke="#e8eaf0" stroke-width="1.6"/>
+        <text x="463" y="65" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">4</text>
+        <text x="515" y="155" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">2</text>
+        <text x="411" y="155" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">3</text>
+        <circle cx="600" cy="105" r="14" fill="#181b24" stroke="#efa13c" stroke-width="1.8"/>
+        <text x="600" y="110" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">1</text>
+        <path d="M600,86 A16,16 0 1,1 587,92" fill="none" stroke="#565a63" stroke-width="1.4"/>
+        <text x="500" y="212" fill="#e8eaf0" font-family="JetBrains Mono, monospace" font-size="13.5" text-anchor="middle">g x g⁻¹ = (4 2 3)</text>
+      </svg>
+      <div class="cap">Same diagram, new nameplates. Conjugation cannot change the <b>cycle shape</b> — and nothing else survives it either.</div>
+    </div>
+
+    <p>So in <span class="mono">Sₙ</span>: <b>two permutations are conjugate exactly when they have the same cycle shape.</b> The classes are therefore counted by the partitions of <span class="mono">n</span> — which is why <span class="mono">S₄</span> had the five families <span class="mono">1 + 6 + 3 + 8 + 6 = 24</span> we met in Module 4, and why the cube's rotations sorted themselves into exactly five geometric types.</p>
+  </div>
+</section>
+
+<!-- ============================ 03 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">03 — CLASSES CUT THE GROUP INTO BLOCKS</span>
+    <h2>Every element sits in exactly one class</h2>
+
+    <p>"Being conjugate" is an <em class="term">equivalence relation</em>: <span class="mono">x = exe⁻¹</span> (reflexive); if <span class="mono">y = gxg⁻¹</span> then <span class="mono">x = g⁻¹y g</span> (symmetric); and conjugating twice, by <span class="mono">g</span> then <span class="mono">h</span>, is conjugating once by <span class="mono">hg</span> (transitive). So the classes <b>partition</b> the group — no overlaps, nothing left over. Three examples, drawn to scale:</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bars showing how S4, A4 and Z6 split into conjugacy classes">
+        <g font-family="JetBrains Mono, monospace" font-size="12.5">
+          <!-- S4 : 1 6 3 8 6, 24 units of 25px -->
+          <text x="10" y="42" fill="#8a90a0">S₄ · 24</text>
+          <g>
+            <rect x="100" y="22" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="125" y="22" width="148" height="34" rx="3" fill="#e24a3b"/>
+            <rect x="275" y="22" width="73" height="34" rx="3" fill="#efa13c"/>
+            <rect x="350" y="22" width="198" height="34" rx="3" fill="#2faf9e"/>
+            <rect x="550" y="22" width="98" height="34" rx="3" fill="#6c7fe0"/>
+            <text x="111" y="44" fill="#e8eaf0" text-anchor="middle">1</text>
+            <text x="199" y="44" fill="#12141b" text-anchor="middle">6</text>
+            <text x="311" y="44" fill="#12141b" text-anchor="middle">3</text>
+            <text x="449" y="44" fill="#12141b" text-anchor="middle">8</text>
+            <text x="599" y="44" fill="#12141b" text-anchor="middle">6</text>
+          </g>
+          <text x="100" y="74" fill="#8a90a0" font-size="11">e · (a b) · (a b)(c d) · (a b c) · (a b c d)</text>
+
+          <!-- A4 : 1 3 4 4, 12 units -->
+          <text x="10" y="126" fill="#8a90a0">A₄ · 12</text>
+          <g>
+            <rect x="100" y="106" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="125" y="106" width="73" height="34" rx="3" fill="#efa13c"/>
+            <rect x="200" y="106" width="98" height="34" rx="3" fill="#2faf9e"/>
+            <rect x="300" y="106" width="98" height="34" rx="3" fill="#8f6bd6"/>
+            <text x="111" y="128" fill="#e8eaf0" text-anchor="middle">1</text>
+            <text x="161" y="128" fill="#12141b" text-anchor="middle">3</text>
+            <text x="249" y="128" fill="#12141b" text-anchor="middle">4</text>
+            <text x="349" y="128" fill="#12141b" text-anchor="middle">4</text>
+          </g>
+          <text x="100" y="158" fill="#8a90a0" font-size="11">the eight 3-cycles split in two: left-handed, right-handed</text>
+
+          <!-- Z6 : six singletons -->
+          <text x="10" y="210" fill="#8a90a0">ℤ₆ · 6</text>
+          <g>
+            <rect x="100" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="125" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="150" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="175" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="200" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <rect x="225" y="190" width="23" height="34" rx="3" fill="#565a63"/>
+            <text x="270" y="212" fill="#8a90a0" font-size="11">abelian: gxg⁻¹ = x always — six classes of one</text>
+          </g>
+        </g>
+      </svg>
+      <div class="cap">Each bar is a whole group; each block is one conjugacy class. Class sizes always add up to <b>|G|</b> — and each one <b>divides</b> |G|.</div>
+    </div>
+
+    <p>Two facts fall straight out of the picture. First, the identity is always alone in its class, since <span class="mono">geg⁻¹ = e</span>. Second, in an <em class="term">abelian</em> group <span class="mono">gxg⁻¹ = xgg⁻¹ = x</span> for every <span class="mono">g</span>, so <b>every class is a single element</b>. Conjugacy is a measure of how badly a group fails to commute — and it is invisible in <span class="mono">ℤₙ</span> and in <span class="mono">SO(2)</span>. That is exactly why the story only becomes interesting when we reach <span class="mono">SU(2)</span> and <span class="mono">SO(3)</span>.</p>
+
+    <h3>Why the sizes divide |G|</h3>
+    <p>Fix <span class="mono">x</span>. The elements that fail to move it — those with <span class="mono">gxg⁻¹ = x</span>, i.e. <span class="mono">gx = xg</span> — form a subgroup, the <em class="term">centralizer</em> <span class="mono">C(x)</span>. Two elements <span class="mono">g, h</span> produce the same conjugate of <span class="mono">x</span> precisely when they differ by something in <span class="mono">C(x)</span>. So the conjugates of <span class="mono">x</span> correspond one-to-one with the cosets of <span class="mono">C(x)</span>:</p>
+
+    <div class="eq"><span class="mono" style="font-size:17px">| class of x | &nbsp;=&nbsp; |G| / |C(x)|</span></div>
+
+    <p>Example, in <span class="mono">S₄</span>: the transposition <span class="mono">(1 2)</span> commutes with <span class="mono">e, (1 2), (3 4), (1 2)(3 4)</span> — a centralizer of size 4 — so its class has <span class="mono">24/4 = 6</span> members. The table of transpositions has exactly six entries. This is the <em class="term">orbit–stabiliser theorem</em> in disguise: the group acts on <em>itself</em> by conjugation, and the classes are the orbits.</p>
+  </div>
+</section>
+
+<!-- ============================ 04 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">04 — WHAT SURVIVES CONJUGATION</span>
+    <h2>The class is what is left when you forget the viewpoint</h2>
+
+    <p>Anything that a change of seat cannot affect is constant on a conjugacy class. Such a quantity is called a <em class="term">class function</em>, and the list is short and useful:</p>
+
+    <table class="ctab">
+      <thead><tr><th>setting</th><th>conjugation means</th><th>preserved</th><th>what a class is</th></tr></thead>
+      <tbody>
+        <tr><td>any group</td><td class="mono">g x g⁻¹</td><td>the <b>order</b> of the element</td><td>a family of same-order moves</td></tr>
+        <tr><td class="mono">Sₙ</td><td>relabel the symbols</td><td>the <b>cycle shape</b></td><td>a partition of <span class="mono">n</span></td></tr>
+        <tr><td>rotation groups</td><td>move the axis</td><td>the <b>angle</b> of turn</td><td>all axes, one fixed angle</td></tr>
+        <tr><td>matrix groups</td><td><b>change of basis</b></td><td><b>trace</b>, determinant, eigenvalues</td><td>a similarity class</td></tr>
+      </tbody>
+    </table>
+
+    <p>That last row is the punchline for everything ahead. In a linear group, <span class="mono">g X g⁻¹</span> is exactly what happens to the matrix <span class="mono">X</span> when you rewrite it in a new basis — the map is the same map; only the coordinates changed. Conjugate matrices are <em class="term">similar</em> matrices, and similar matrices share their trace, determinant and eigenvalues. <b>Conjugacy classes are basis-free facts about a linear map.</b></p>
+
+    <p>Geometrically, in <span class="mono">SO(3)</span>: conjugating a rotation swings its axis somewhere else on the sphere but never touches the angle. So a conjugacy class of <span class="mono">SO(3)</span> is precisely <em>"turn by θ, about any axis you like"</em> — one class for each angle <span class="mono">θ ∈ [0, π]</span>.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rotations of the same angle about different axes form one conjugacy class">
+        <circle cx="330" cy="120" r="95" fill="none" stroke="#2a2f3a" stroke-width="1.6"/>
+        <ellipse cx="330" cy="120" rx="95" ry="30" fill="none" stroke="#2a2f3a" stroke-width="1.2"/>
+        <g stroke="#e8eaf0" stroke-width="2">
+          <line x1="330" y1="20" x2="330" y2="220"/>
+          <line x1="245" y1="55" x2="415" y2="185"/>
+          <line x1="230" y1="150" x2="430" y2="90"/>
+        </g>
+        <g fill="#2faf9e">
+          <circle cx="330" cy="20" r="5"/><circle cx="415" cy="185" r="5"/><circle cx="430" cy="90" r="5"/>
+        </g>
+        <g fill="none" stroke="#efa13c" stroke-width="2">
+          <path d="M300,116 A32,32 0 0,1 352,101" marker-end="url(#ar3)"/>
+          <path d="M366,163 A30,30 0 0,1 393,140"/>
+          <path d="M382,131 A30,30 0 0,1 397,105"/>
+        </g>
+        <defs>
+          <marker id="ar3" markerWidth="8" markerHeight="8" refX="6" refY="2.8" orient="auto">
+            <path d="M0,0 L6,2.8 L0,5.6 z" fill="#efa13c"/>
+          </marker>
+        </defs>
+        <text x="290" y="98" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="14">θ</text>
+        <text x="352" y="180" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="14">θ</text>
+        <text x="378" y="126" fill="#efa13c" font-family="JetBrains Mono, monospace" font-size="14">θ</text>
+        <text x="330" y="242" fill="#8a90a0" font-family="JetBrains Mono, monospace" font-size="12.5" text-anchor="middle">one class of SO(3) = one angle, every axis</text>
+      </svg>
+      <div class="cap">Conjugation slides the axis over the sphere and leaves the <b>angle</b> alone. The class is labelled by a single number.</div>
+    </div>
+
+    <div class="callout"><b>Where this is going.</b> In <span class="mono">SU(2)</span> the same thing happens, and it becomes fully visible. Every element is <span class="mono">g = cos(θ/2)·I + i sin(θ/2)·(n·σ)</span>, its trace is <span class="mono">2cos(θ/2)</span>, and conjugation moves the unit vector <span class="mono">n</span> anywhere on the sphere while fixing <span class="mono">θ</span>. <span class="mono">SU(2)</span> is the 3-sphere <span class="mono">S³</span>, and its conjugacy classes are the 2-spheres of constant <span class="mono">θ</span> — latitude by latitude, poles at <span class="mono">±I</span>. That is the next page.</div>
+  </div>
+</section>
+
+<!-- ============================ 05 ============================ -->
+<section>
+  <div class="wrap">
+    <span class="sec-tag">05 — TWO PAYOFFS, ONE SENTENCE EACH</span>
+    <h2>Why anyone bothers</h2>
+
+    <div class="facts">
+      <div><div class="n" style="color:var(--v3)">N</div><div class="k">normal subgroups</div></div>
+      <div><div class="n" style="color:var(--v2)">χ</div><div class="k">characters</div></div>
+      <div><div class="n" style="color:var(--v4)">#</div><div class="k">counting</div></div>
+      <div><div class="n" style="color:var(--v1)">θ</div><div class="k">continuous groups</div></div>
+    </div>
+
+    <p><b>Normal subgroups.</b> A subgroup <span class="mono">N</span> is normal exactly when <span class="mono">gNg⁻¹ = N</span> — that is, when <span class="mono">N</span> is a <em>union of whole conjugacy classes</em>. Look back at the bar for <span class="mono">A₄</span>: the blocks <span class="mono">1 + 3</span> combine to a normal subgroup of order 4; you cannot slice a class in half. This is how one finds every normal subgroup, and why <span class="mono">A₅</span> — whose class sizes <span class="mono">1, 15, 20, 12, 12</span> admit no sub-sum dividing 60 except 1 — is simple, and hence why the quintic has no formula.</p>
+
+    <p><b>Characters.</b> A representation sends group elements to matrices; its character is the trace. Since <span class="mono">tr(gXg⁻¹) = tr(X)</span>, characters are constant on classes — so a character table needs only one column per class, and the number of irreducible representations equals the number of conjugacy classes. Every class count in this course — <span class="mono">4</span> for <span class="mono">A₄</span>, <span class="mono">5</span> for <span class="mono">S₄</span> — has been quietly telling you the width of a table in Part 2.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">Introduction to Group Theory · an example-first course · Module 6 of Part 1 · Conjugation</p>
+    <p>Try it by hand: in the dihedral group <span class="mono">D₄</span> (symmetries of the square, order 8), show that the two reflections through the diagonals are conjugate to each other, that the two through the edge-midpoints are conjugate to each other, but that no element conjugates a diagonal mirror into an edge mirror. Class sizes: <span class="mono">1 + 1 + 2 + 2 + 2 = 8</span>. Next: <span class="mono">SU(2)</span>, where the classes stop being a list and become spheres.</p>
+  </div>
+</footer>
+
+</body>
+</html>
