@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seventeen Patterns</title>
+<style>
+/* Opening slides for Lecture 1. Slate paper, indigo accent, the patterns carry the colour.
+   Layout: one full-viewport slide, pattern left, its symmetries right, the group beneath. */
+:root{
+  --paper:#f4f5f3; --panel:#ffffff; --ink:#191c21; --ink-soft:#5a6069;
+  --rule:#d8dbd6; --rule-soft:#e8eae6;
+  --accent:#3a4fa8; --accent-soft:#e7ebf8;
+  --warn:#a8471f;
+  --p-mortar:#cfc7bd; --p-brick:#b06a4a;
+  --p-grout:#c9ccc6; --p-tileA:#e9e4d8; --p-tileB:#3a6b7a;
+  --p-weave:#d9b98c; --p-weaveline:#8a6b42; --p-weavebg:#f0e6d6;
+  --p-starbg:#1f4a5c; --p-star:#e8d9a8; --p-cross:#b8542f;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;overflow:hidden}
+.deck{height:100%;position:relative}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;
+  justify-content:center;padding:clamp(18px,3vh,40px) clamp(20px,3.8vw,60px) 56px;
+  gap:clamp(10px,1.8vh,22px)}
+.slide.on{display:flex}
+h1{font-size:clamp(26px,4.6vh,50px);line-height:1.08;margin:0;font-weight:600;text-wrap:balance}
+h1 .big{font-size:1.5em;color:var(--accent)}
+p.sub{margin:0;color:var(--ink-soft);font-size:clamp(15px,2.2vh,23px);line-height:1.4;
+  max-width:62ch;text-wrap:balance}
+p.sub b{color:var(--ink);font-weight:600}
+.grid4{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  gap:clamp(10px,1.8vh,20px);flex:1;min-height:0}
+.cell{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--rule);
+  background:var(--panel);min-height:0}
+.cell svg{display:block;width:100%;height:100%}
+.cap{position:absolute;left:0;right:0;bottom:0;background:var(--panel);
+  padding:7px 12px;font-size:clamp(12px,1.8vh,17px);border-top:1px solid var(--rule);font-weight:600}
+.split{display:flex;gap:clamp(14px,2.4vw,34px);flex:1;min-height:0;align-items:stretch}
+.split .cell{flex:1 1 46%;min-width:0}
+.list{flex:1 1 54%;min-width:260px;display:flex;flex-direction:column;justify-content:flex-start;padding-top:clamp(4px,1.2vh,14px);gap:clamp(8px,1.5vh,16px)}
+.row{display:flex;gap:11px;align-items:baseline}
+.row .k{flex:0 0 clamp(74px,9vw,104px);font-weight:600;color:var(--accent);
+  font-size:clamp(13px,1.95vh,20px)}
+.row .v{flex:1;color:var(--ink-soft);font-size:clamp(13px,1.95vh,20px);line-height:1.35}
+.row .v b{color:var(--ink);font-weight:600}
+.row.none .k{color:var(--ink-soft)}
+.grp{border:1px solid var(--accent);background:var(--accent-soft);border-radius:10px;
+  padding:clamp(9px,1.5vh,15px) clamp(14px,2vw,22px);display:flex;flex-wrap:wrap;
+  align-items:baseline;gap:6px clamp(14px,2vw,26px)}
+.grp .eq{font-size:clamp(19px,3vh,32px);font-weight:600;color:var(--accent);white-space:nowrap}
+.grp .leg{font-size:clamp(12px,1.7vh,17px);color:var(--ink-soft)}
+.grp .leg b{color:var(--ink);font-weight:600}
+.finale{display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:clamp(14px,2.6vh,30px)}
+.finale .n{font-size:clamp(90px,26vh,250px);line-height:.9;color:var(--accent);font-weight:600}
+.finale .words{font-size:clamp(20px,3.6vh,42px);line-height:1.25;max-width:20ch;text-wrap:balance}
+.bar{position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 clamp(16px,3vw,34px);
+  font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, monospace;
+  font-size:13px;color:var(--ink-soft)}
+.dots{display:flex;gap:7px}
+.dots button{width:9px;height:9px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--rule)}
+.dots button[aria-current="true"]{background:var(--accent);transform:scale(1.25)}
+.dots button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:820px){ .grid4{grid-template-columns:1fr;grid-template-rows:repeat(4,1fr)}
+  .split{flex-direction:column} .list{min-width:0} }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide on">
+    <h1>What do these four have in common?</h1>
+    <div class="grid4" id="g1"></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <h1>Brickwork</h1>
+    <div class="split">
+      <div class="cell" id="gb"></div>
+      <div class="list">
+        <div class="row"><span class="k">slides</span><span class="v">one brick along a course; and <b>half a brick across, one course up</b></span></div>
+        <div class="row"><span class="k">turns</span><span class="v">a <b>half turn</b> about the centre of every brick</span></div>
+        <div class="row none"><span class="k">quarter turns</span><span class="v">none &mdash; a brick is not square</span></div>
+        <div class="row"><span class="k">mirrors</span><span class="v">down the middle of every brick, down every upright joint, and along the middle of every course</span></div>
+        <div class="row"><span class="k">glides</span><span class="v">reflect in the line between two courses, <b>then</b> slide half a brick along</span></div>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="eq">G = &#10216; u, v, h, m &#10217;</span>
+      <span class="leg"><b>u, v</b> the two slides &nbsp;&middot;&nbsp; <b>h</b> a half turn &nbsp;&middot;&nbsp; <b>m</b> a mirror</span>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <h1>A tiled floor</h1>
+    <div class="split">
+      <div class="cell" id="gf"></div>
+      <div class="list">
+        <div class="row"><span class="k">slides</span><span class="v">one tile across, one tile up</span></div>
+        <div class="row"><span class="k">turns</span><span class="v">a <b>quarter turn</b> about every tile centre and every tile corner; a half turn about every edge midpoint</span></div>
+        <div class="row"><span class="k">mirrors</span><span class="v">four directions through each quarter-turn centre &mdash; upright, flat, and both diagonals</span></div>
+        <div class="row"><span class="k">glides</span><span class="v">diagonal lines, halfway between the diagonal mirrors</span></div>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="eq">G = &#10216; u, v, q, m &#10217;</span>
+      <span class="leg"><b>u, v</b> the two slides &nbsp;&middot;&nbsp; <b>q</b> a quarter turn &nbsp;&middot;&nbsp; <b>m</b> a mirror</span>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <h1>Woven cloth</h1>
+    <div class="split">
+      <div class="cell" id="gw"></div>
+      <div class="list">
+        <div class="row"><span class="k">slides</span><span class="v">diagonally, from one crossing to the next, in two directions</span></div>
+        <div class="row"><span class="k">turns</span><span class="v">a <b>quarter turn</b> about the centre of every square gap; a half turn at every crossing</span></div>
+        <div class="row"><span class="k">mirrors</span><span class="v">along the centre line of every strand, in two directions &mdash; but <b>not one of them passes through a quarter-turn centre</b></span></div>
+        <div class="row"><span class="k">glides</span><span class="v">lines running midway between the strands</span></div>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="eq">G = &#10216; u, v, q, m &#10217;</span>
+      <span class="leg">the same four kinds of move as the floor &mdash; arranged differently, and <b>not the same group</b></span>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <h1>A star tiling</h1>
+    <div class="split">
+      <div class="cell" id="gs"></div>
+      <div class="list">
+        <div class="row"><span class="k">slides</span><span class="v">one cell across, one cell up</span></div>
+        <div class="row"><span class="k">turns</span><span class="v">a <b>quarter turn</b> about every star centre and every cross centre; a half turn between them</span></div>
+        <div class="row"><span class="k">mirrors</span><span class="v">four directions through each quarter-turn centre &mdash; upright, flat, and both diagonals</span></div>
+        <div class="row"><span class="k">glides</span><span class="v">diagonal lines, halfway between the diagonal mirrors</span></div>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="eq">G = &#10216; u, v, q, m &#10217;</span>
+      <span class="leg">word for word the tiled floor&rsquo;s list &mdash; <b>the same group</b>, on a pattern that looks nothing like it</span>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="finale">
+      <div class="n">17</div>
+      <div class="words">There are seventeen such tiling patterns, and no more.</div>
+    </div>
+  </section>
+
+  <div class="bar">
+    <span>&larr; &rarr; or click &middot; F for full screen</span>
+    <span class="dots" id="dots"></span>
+  </div>
+</div>
+
+<script>
+"use strict";
+function TILE(kind){
+  var r = function(x,y,w,h,f,extra){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+f+'"'+(extra||'')+'/>';
+  };
+  if(kind==="brick"){
+    // running bond: rows of 120x50 bricks, every other row shifted by half a brick
+    var m=8, W=120, H=100, bw=W-m, bh=50-m, c='var(--p-brick)';
+    return {w:W,h:H,bg:'var(--p-mortar)',body:
+      r(m/2, m/2, bw, bh, c, ' rx="2"') +
+      r(-W+m/2+60, 50+m/2, bw, bh, c, ' rx="2"') +
+      r(m/2+60,    50+m/2, bw, bh, c, ' rx="2"')
+    };
+  }
+  if(kind==="floor"){
+    // square tiles on a square grid, each with a centred diamond: full D4 symmetry
+    var g=6, S=100;
+    return {w:S,h:S,bg:'var(--p-grout)',body:
+      r(g/2,g/2,S-g,S-g,'var(--p-tileA)',' rx="3"') +
+      '<polygon points="50,18 82,50 50,82 18,50" fill="var(--p-tileB)"/>' +
+      '<polygon points="50,34 66,50 50,66 34,50" fill="var(--p-tileA)"/>'
+    };
+  }
+  if(kind==="weave"){
+    // plain weave: strands over and under, alternating at each crossing
+    var S=100, t=25, p=50, out='', k, m2, x, y;
+    var strand=function(x,y,w,h){
+      return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="var(--p-weave)" '+
+             'stroke="var(--p-weaveline)" stroke-width="2"/>';
+    };
+    // horizontals, then verticals; then bring the horizontal back over at half the crossings
+    for(m2=0;m2<2;m2++) out += strand(-6, m2*p, S+12, t);
+    for(k=0;k<2;k++)  out += strand(k*p, -6, t, S+12);
+    for(k=0;k<2;k++) for(m2=0;m2<2;m2++){
+      if((k+m2)%2===1){
+        x=k*p; y=m2*p;
+        // fill only, then just the two long edges, so no false outline crosses the strand
+        out += '<rect x="'+(x-3)+'" y="'+y+'" width="'+(t+6)+'" height="'+t+'" fill="var(--p-weave)"/>';
+        out += '<line x1="'+(x-3)+'" y1="'+y+'" x2="'+(x+t+3)+'" y2="'+y+
+               '" stroke="var(--p-weaveline)" stroke-width="2"/>';
+        out += '<line x1="'+(x-3)+'" y1="'+(y+t)+'" x2="'+(x+t+3)+'" y2="'+(y+t)+
+               '" stroke="var(--p-weaveline)" stroke-width="2"/>';
+      }
+    }
+    return {w:S,h:S,bg:'var(--p-weavebg)',body:out};
+  }
+  if(kind==="star"){
+    // eight-pointed stars on a square grid, four-pointed crosses in the gaps
+    var S=100, out='', cx, cy, i, j;
+    var star=function(cx,cy,R){
+      var pts=[], a, i;
+      for(i=0;i<16;i++){
+        a=(-90+i*22.5)*Math.PI/180;
+        var rad=(i%2===0)?R:R*0.46;
+        pts.push((cx+rad*Math.cos(a)).toFixed(2)+','+(cy+rad*Math.sin(a)).toFixed(2));
+      }
+      return '<polygon points="'+pts.join(' ')+'" fill="var(--p-star)"/>';
+    };
+    var cross=function(cx,cy,R){
+      var pts=[], a, i;
+      for(i=0;i<8;i++){
+        a=(-90+i*45)*Math.PI/180;
+        var rad=(i%2===0)?R:R*0.40;
+        pts.push((cx+rad*Math.cos(a)).toFixed(2)+','+(cy+rad*Math.sin(a)).toFixed(2));
+      }
+      return '<polygon points="'+pts.join(' ')+'" fill="var(--p-cross)"/>';
+    };
+    out += star(50,50,40);
+    for(i=0;i<=1;i++) for(j=0;j<=1;j++) out += cross(i*S, j*S, 26);
+    return {w:S,h:S,bg:'var(--p-starbg)',body:out};
+  }
+  if(kind==="pinwheel"){
+    // four-fold rotation and nothing else: no mirror anywhere
+    var S=100, g2=6, out='';
+    out += r(g2/2,g2/2,S-g2,S-g2,'var(--p-pinA)',' rx="3"');
+    var vane=function(deg){
+      return '<polygon points="50,50 50,16 84,16" fill="var(--p-pinB)" '+
+             'transform="rotate('+deg+' 50 50)"/>';
+    };
+    out += vane(0)+vane(90)+vane(180)+vane(270);
+    return {w:S,h:S,bg:'var(--p-grout)',body:out};
+  }
+  return {w:10,h:10,bg:'#fff',body:''};
+}
+/* --------------------------- rendering --------------------------- */
+var uid = 0;
+function patternSVG(kind, scale){
+  var t = TILE(kind), id = "pat"+(++uid);
+  var s = '<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">';
+  s += '<defs><pattern id="'+id+'" patternUnits="userSpaceOnUse" width="'+t.w+'" height="'+t.h+'"'+
+       ' patternTransform="scale('+(scale||1)+')">';
+  s += '<rect x="-1" y="-1" width="'+(t.w+2)+'" height="'+(t.h+2)+'" fill="'+t.bg+'"/>'+t.body;
+  s += '</pattern></defs><rect width="400" height="400" fill="url(#'+id+')"/></svg>';
+  return s;
+}
+var SCALE = {brick:0.9, floor:0.82, weave:0.9, star:0.82};
+var FOUR = [["brick","brickwork"],["floor","a tiled floor"],["weave","woven cloth"],["star","a star tiling"]];
+document.getElementById("g1").innerHTML = FOUR.map(function(f){
+  return '<div class="cell">'+patternSVG(f[0], SCALE[f[0]])+'<div class="cap">'+f[1]+'</div></div>';
+}).join("");
+document.getElementById("gb").innerHTML = patternSVG("brick", 1.15);
+document.getElementById("gf").innerHTML = patternSVG("floor", 1.05);
+document.getElementById("gw").innerHTML = patternSVG("weave", 1.15);
+document.getElementById("gs").innerHTML = patternSVG("star",  1.05);
+
+/* --------------------------- the deck --------------------------- */
+var slides = Array.prototype.slice.call(document.querySelectorAll(".slide")), at = 0;
+var dots = document.getElementById("dots");
+dots.innerHTML = slides.map(function(_,i){ return '<button type="button" aria-label="slide '+(i+1)+'"></button>'; }).join("");
+var dotEls = Array.prototype.slice.call(dots.children);
+dotEls.forEach(function(b,i){ b.addEventListener("click", function(e){ e.stopPropagation(); go(i); }); });
+function go(i){
+  at = Math.max(0, Math.min(slides.length-1, i));
+  slides.forEach(function(s,k){ s.classList.toggle("on", k===at); });
+  dotEls.forEach(function(b,k){ b.setAttribute("aria-current", String(k===at)); });
+}
+document.addEventListener("keydown", function(e){
+  if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){ e.preventDefault(); go(at+1); }
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){ e.preventDefault(); go(at-1); }
+  else if(e.key==="Home"){ go(0); } else if(e.key==="End"){ go(slides.length-1); }
+  else if(e.key==="f"||e.key==="F"){
+    if(document.fullscreenElement) document.exitFullscreen().catch(function(){});
+    else document.documentElement.requestFullscreen().catch(function(){});
+  }
+});
+document.getElementById("deck").addEventListener("click", function(e){
+  if(e.target.closest("button")) return;
+  go(at+1);
+});
+go(0);
+</script>
+</body>
+</html>

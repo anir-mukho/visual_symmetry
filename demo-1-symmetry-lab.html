@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Symmetry Lab</title>
+<style>
+/* Lecture-hall blueprint: cool slate paper, indigo for rotations, rust for reflections.
+   Layout: stage (polygon) + readout side by side, comparison strip, then the table. */
+:root{
+  --paper:#f4f5f3;
+  --panel:#ffffff;
+  --ink:#191c21;
+  --ink-soft:#5a6069;
+  --rule:#d8dbd6;
+  --rule-soft:#e8eae6;
+  --rot:#3a4fa8;
+  --rot-soft:#e7ebf8;
+  --ref:#a8471f;
+  --ref-soft:#f8ebe5;
+  --good:#1a7a5e;
+  --stage:#eceee9;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#15181c;
+    --panel:#1d2127;
+    --ink:#eceef0;
+    --ink-soft:#9aa2ac;
+    --rule:#343a42;
+    --rule-soft:#262b32;
+    --rot:#93a8ef;
+    --rot-soft:#242c45;
+    --ref:#e39872;
+    --ref-soft:#3a2a22;
+    --good:#5fcfa8;
+    --stage:#121519;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15181c;
+  --panel:#1d2127;
+  --ink:#eceef0;
+  --ink-soft:#9aa2ac;
+  --rule:#343a42;
+  --rule-soft:#262b32;
+  --rot:#93a8ef;
+  --rot-soft:#242c45;
+  --ref:#e39872;
+  --ref-soft:#3a2a22;
+  --good:#5fcfa8;
+  --stage:#121519;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;
+  font-size:16px;line-height:1.5;
+  padding:24px 20px 56px;
+}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;
+  font-size:clamp(28px,4vw,40px);line-height:1.1;margin:0;text-wrap:balance;
+}
+.lede{margin:0;color:var(--ink-soft);max-width:62ch}
+h2{
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;
+  font-size:21px;margin:0 0 10px;
+}
+.card{
+  background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px;
+}
+.row{display:flex;flex-wrap:wrap;gap:18px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.sel{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft)}
+select,button{
+  font-family:inherit;font-size:15px;color:var(--ink);background:var(--panel);
+  border:1px solid var(--rule);border-radius:7px;padding:8px 12px;cursor:pointer;
+}
+select{padding:7px 10px}
+button:hover{border-color:var(--ink-soft)}
+button:focus-visible,select:focus-visible,.cell:focus-visible{outline:2px solid var(--rot);outline-offset:2px}
+button.gen{font-weight:600;min-width:74px}
+button.gen .op{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-size:18px;font-style:italic}
+button.rotbtn{background:var(--rot-soft);border-color:var(--rot);color:var(--ink)}
+button.refbtn{background:var(--ref-soft);border-color:var(--ref);color:var(--ink)}
+.stagewrap{flex:1 1 360px;min-width:300px}
+.stage{background:var(--stage);border:1px solid var(--rule-soft);border-radius:8px;display:block;width:100%;height:auto}
+.readout{flex:1 1 320px;min-width:280px;display:flex;flex-direction:column;gap:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}
+.kv dt{color:var(--ink-soft);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.kv dd{margin:0;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:16px}
+.elname{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:30px;line-height:1}
+.log{
+  font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:14px;
+  background:var(--rule-soft);border-radius:6px;padding:10px 12px;
+  min-height:42px;word-break:break-all;
+}
+.note{font-size:14px;color:var(--ink-soft);margin:10px 0 0}
+.note b{color:var(--ink);font-weight:600}
+.cmp{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.cmpcell{flex:1 1 180px;min-width:160px;text-align:center}
+.cmpcell svg{background:var(--stage);border:1px solid var(--rule-soft);border-radius:8px;width:100%;height:auto}
+.cmplabel{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:22px;margin-bottom:6px}
+.verdict{font-size:16px;font-weight:600;margin:14px 0 0;display:flex;align-items:center;gap:8px}
+.verdict .pill{
+  font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px;font-weight:500;
+  border-radius:999px;padding:3px 11px;border:1px solid currentColor;
+}
+.ne{color:var(--ref)}
+.eq{color:var(--good)}
+.tablescroll{overflow-x:auto}
+table{border-collapse:collapse;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:14px}
+th,td{border:1px solid var(--rule);padding:0;text-align:center}
+th{background:var(--rule-soft);font-weight:600;font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:17px;min-width:42px;height:34px}
+th.corner{background:var(--panel);font-style:normal;font-size:13px;font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;color:var(--ink-soft)}
+.cell{
+  width:100%;height:34px;min-width:42px;border:0;border-radius:0;padding:0;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:16px;
+  background:transparent;color:#15181d;
+}
+tr.hl th, td.hl{outline:2px solid var(--ink);outline-offset:-2px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin-top:12px}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+@media (max-width:560px){ body{padding:16px 14px 40px} .card{padding:14px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Symmetry Lab</h1>
+    <p class="lede">Every way of picking up this polygon and putting it back down in the same place. Act on it, watch where the corners go, and read off the group it forms.</p>
+  </header>
+
+  <section class="card">
+    <div class="controls">
+      <label class="sel" for="shape">Shape
+        <select id="shape">
+          <option value="3">Triangle · D₃</option>
+          <option value="4" selected>Square · D₄</option>
+          <option value="5">Pentagon · D₅</option>
+          <option value="6">Hexagon · D₆</option>
+        </select>
+      </label>
+      <button class="gen rotbtn" id="btnR" title="rotate one notch anticlockwise">turn <span class="op">r</span></button>
+      <button class="gen rotbtn" id="btnRi" title="rotate one notch back"><span class="op">r</span>⁻¹</button>
+      <button class="gen refbtn" id="btnF" title="reflect in the vertical axis">flip <span class="op">f</span></button>
+      <button id="btnReset">back to start</button>
+      <label class="sel" for="jump">or apply
+        <select id="jump"></select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <div class="stagewrap">
+        <svg class="stage" id="main" viewBox="0 0 320 320" role="img" aria-label="The polygon in its current position"></svg>
+      </div>
+      <div class="readout">
+        <div>
+          <h2>Where we are</h2>
+          <dl class="kv">
+            <dt>Symmetry</dt><dd><span class="elname" id="curName">e</span></dd>
+            <dt>Corners go</dt><dd id="curPerm">1→1 2→2 3→3 4→4</dd>
+            <dt>In cycles</dt><dd id="curCyc">e</dd>
+            <dt>Its order</dt><dd id="curOrd">1</dd>
+          </dl>
+        </div>
+        <div>
+          <h2>What you did</h2>
+          <div class="log" id="log">nothing yet</div>
+          <p class="note" id="netnote"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Does the order matter?</h2>
+    <div class="controls" style="margin-bottom:16px">
+      <label class="sel" for="gSel">first pick <select id="gSel"></select></label>
+      <label class="sel" for="hSel">and <select id="hSel"></select></label>
+    </div>
+    <div class="cmp">
+      <div class="cmpcell">
+        <div class="cmplabel" id="lab1">g·h</div>
+        <svg id="cmp1" viewBox="0 0 200 200" role="img" aria-label="result of doing h then g"></svg>
+      </div>
+      <div class="cmpcell">
+        <div class="cmplabel" id="lab2">h·g</div>
+        <svg id="cmp2" viewBox="0 0 200 200" role="img" aria-label="result of doing g then h"></svg>
+      </div>
+      <div style="flex:1 1 220px;min-width:200px">
+        <p class="verdict" id="cmpVerdict"></p>
+        <p class="note" id="cmpNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>The whole group at once</h2>
+    <p class="note" style="margin:0 0 14px">The entry in row <i>g</i>, column <i>h</i> is <i>g·h</i> — do <i>h</i> first, then <i>g</i>. Click any entry to carry it out on the polygon above.</p>
+    <div class="tablescroll"><table id="cayley"></table></div>
+    <p class="note" id="latin"></p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--rot)"></span>turns (the rotations)</span>
+      <span><span class="swatch" style="background:var(--ref)"></span>flips (the reflections)</span>
+      <span>Notice the four blocks: turn·turn is a turn, turn·flip is a flip.</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var n = 4;                 // number of corners
+  var cur = {a:1, k:0};      // current symmetry: corner i goes to position a*i+k (mod n)
+  var disp = 0;              // on-screen angle in degrees, kept continuous for animation
+  var word = [];             // the clicks, in order
+  var anim = null;
+
+  var mod = function(x,m){ return ((x % m) + m) % m; };
+  function compose(g,h){ return { a: g.a*h.a, k: mod(g.a*h.k + g.k, n) }; }
+  function same(g,h){ return g.a===h.a && g.k===h.k; }
+  var SUP = ["","","²","³","⁴","⁵","⁶","⁷"];
+
+  function name(g){
+    if(g.a===1) return g.k===0 ? "e" : "r"+SUP[g.k];
+    return g.k===0 ? "f" : "r"+SUP[g.k]+"f";
+  }
+  function elements(){
+    var out=[],k;
+    for(k=0;k<n;k++) out.push({a:1,k:k});
+    for(k=0;k<n;k++) out.push({a:-1,k:k});
+    return out;
+  }
+  function order(g){
+    var p={a:1,k:0}, i;
+    for(i=1;i<=2*n;i++){ p=compose(p,g); if(p.a===1&&p.k===0) return i; }
+    return 0;
+  }
+  function colorOf(g,alpha){
+    // turns run cool, flips run warm; lightness steps with k so each element is distinct
+    var t = n>1 ? g.k/n : 0;
+    var hue = g.a===1 ? 232 - 46*t : 22 + 34*t;
+    var light = 58 + 26*t;
+    var sat = g.a===1 ? 46 : 62;
+    return "hsla("+hue.toFixed(0)+","+sat+"%,"+light.toFixed(0)+"%,"+(alpha===undefined?1:alpha)+")";
+  }
+
+  // ---- geometry -------------------------------------------------------------
+  // Corner i sits at screen angle -90 + i*(360/n). r is one notch clockwise on
+  // screen; f is reflection in the vertical axis. Matrices are in SVG coords.
+  function unit(){ return 360/n; }
+  function matrixOf(g){
+    var d = g.k*unit()*Math.PI/180, c = Math.cos(d), s = Math.sin(d);
+    if(g.a===1)  return [c, s, -s, c];        // a b c d  ->  [[a,c],[b,d]]
+    return [-c, -s, -s, c];
+  }
+  function matrixFrom(angleDeg, a){
+    var d = angleDeg*Math.PI/180, c = Math.cos(d), s = Math.sin(d);
+    return a===1 ? [c,s,-s,c] : [-c,-s,-s,c];
+  }
+  function cornerXY(i,R){
+    var b = (-90 + i*unit())*Math.PI/180;
+    return [R*Math.cos(b), R*Math.sin(b)];
+  }
+
+  function polygonMarkup(R){
+    var pts=[],i,p;
+    for(i=0;i<n;i++){ p=cornerXY(i,R); pts.push(p[0].toFixed(1)+","+p[1].toFixed(1)); }
+    var s = '<polygon points="'+pts.join(" ")+'" fill="var(--rot-soft)" stroke="var(--rot)" stroke-width="2"/>';
+    // a wedge on the first corner so the motion reads from the back of the room
+    var p0=cornerXY(0,R), p1=cornerXY(1,R);
+    s += '<path d="M0,0 L'+p0[0].toFixed(1)+','+p0[1].toFixed(1)+' L'+p1[0].toFixed(1)+','+p1[1].toFixed(1)+' Z" fill="var(--ref)" opacity="0.26"/>';
+    for(i=0;i<n;i++){
+      p=cornerXY(i,R);
+      s += '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(R*0.17).toFixed(1)+'" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/>';
+      s += '<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" text-anchor="middle" dominant-baseline="central" '+
+           'font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="'+(R*0.2).toFixed(1)+'" fill="var(--ink)">'+(i+1)+'</text>';
+    }
+    return s;
+  }
+
+  function buildStage(svg, R, size){
+    var half = size/2;
+    svg.innerHTML =
+      '<g transform="translate('+half+','+half+')">' +
+        '<circle cx="0" cy="0" r="'+(R*1.22).toFixed(1)+'" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 5"/>' +
+        '<g class="piece">'+polygonMarkup(R)+'</g>' +
+        '<circle cx="0" cy="0" r="2.5" fill="var(--ink-soft)"/>' +
+      '</g>';
+    return svg.querySelector(".piece");
+  }
+
+  var mainPiece = null;
+  function setMatrix(el, m){
+    el.setAttribute("transform","matrix("+m[0].toFixed(5)+","+m[1].toFixed(5)+","+m[2].toFixed(5)+","+m[3].toFixed(5)+",0,0)");
+  }
+
+  function animateTo(target){
+    if(anim){ cancelAnimationFrame(anim); anim=null; }
+    var fromA = cur.a, m0 = matrixFrom(disp, fromA);
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var targetAngle, m1 = matrixOf(target);
+    if(fromA === target.a){
+      // same kind of symmetry: turn through the shorter way round
+      var want = target.k*unit();
+      targetAngle = want + 360*Math.round((disp-want)/360);
+      if(Math.abs(targetAngle-disp) > 180+1e-9) targetAngle += (targetAngle>disp? -360: 360);
+    }
+    var dur = reduced ? 0 : (fromA===target.a ? 420 : 520);
+    var t0 = performance.now(), startDisp = disp;
+    function frame(now){
+      var u = dur===0 ? 1 : Math.min(1,(now-t0)/dur);
+      var e = u<0.5 ? 2*u*u : 1-Math.pow(-2*u+2,2)/2;   // ease in and out
+      if(fromA === target.a){
+        var ang = startDisp + (targetAngle-startDisp)*e;
+        setMatrix(mainPiece, matrixFrom(ang, fromA));
+      } else {
+        // a flip: let the shape fold through a line and open out the other way
+        var m=[0,0,0,0],i;
+        for(i=0;i<4;i++) m[i] = m0[i] + (m1[i]-m0[i])*e;
+        setMatrix(mainPiece, m);
+      }
+      if(u<1){ anim=requestAnimationFrame(frame); }
+      else{
+        anim=null;
+        disp = (fromA===target.a) ? mod(targetAngle,360) : target.k*unit();
+        setMatrix(mainPiece, matrixOf(target));
+      }
+    }
+    cur = target;
+    anim = requestAnimationFrame(frame);
+  }
+
+  // ---- readouts -------------------------------------------------------------
+  function permString(g){
+    var out=[],i;
+    for(i=0;i<n;i++) out.push((i+1)+"→"+(mod(g.a*i+g.k,n)+1));
+    return out.join("  ");
+  }
+  function cycleString(g){
+    var seen=new Array(n).fill(false), parts=[], i,j,cyc;
+    for(i=0;i<n;i++){
+      if(seen[i]) continue;
+      cyc=[]; j=i;
+      while(!seen[j]){ seen[j]=true; cyc.push(j+1); j=mod(g.a*j+g.k,n); }
+      if(cyc.length>1) parts.push("("+cyc.join(" ")+")");
+    }
+    return parts.length? parts.join("") : "e";
+  }
+
+  function refreshReadout(){
+    document.getElementById("curName").textContent = name(cur);
+    document.getElementById("curPerm").textContent = permString(cur);
+    document.getElementById("curCyc").textContent  = cycleString(cur);
+    document.getElementById("curOrd").textContent  = order(cur);
+    var logEl = document.getElementById("log");
+    logEl.textContent = word.length ? word.join("  then  ") : "nothing yet";
+    var note = document.getElementById("netnote");
+    if(word.length < 2){ note.innerHTML = word.length? "One move, so the net effect is just <b>"+name(cur)+"</b>." : "Press a button, or click an entry in the table below."; }
+    else{
+      var rev = word.slice().reverse().join("·");
+      note.innerHTML = word.length+" moves, and the net effect is a single symmetry: <b>"+rev+" = "+name(cur)+"</b>. Composing never takes you outside the eight.";
+      if(n!==4) note.innerHTML = word.length+" moves, and the net effect is a single symmetry: <b>"+rev+" = "+name(cur)+"</b>. Composing never takes you outside the "+(2*n)+".";
+    }
+    markTable();
+  }
+
+  function apply(g,label){
+    animateTo(compose(g,cur));
+    word.push(label||name(g));
+    if(word.length>8) word=word.slice(-8);
+    refreshReadout();
+  }
+
+  // ---- comparison panel -----------------------------------------------------
+  function parseEl(v){ var p=v.split(","); return {a:+p[0], k:+p[1]}; }
+  function elValue(g){ return g.a+","+g.k; }
+
+  function fillSelect(sel, chosen){
+    sel.innerHTML = elements().map(function(g){
+      return '<option value="'+elValue(g)+'"'+(chosen&&same(g,chosen)?" selected":"")+'>'+name(g)+'</option>';
+    }).join("");
+  }
+
+  function drawStatic(svg, g){
+    var size=200, R=62, piece = buildStage(svg, R, size);
+    setMatrix(piece, matrixOf(g));
+  }
+
+  function refreshCompare(){
+    var g = parseEl(document.getElementById("gSel").value);
+    var h = parseEl(document.getElementById("hSel").value);
+    var gh = compose(g,h), hg = compose(h,g);
+    document.getElementById("lab1").innerHTML = name(g)+"·"+name(h)+" = "+name(gh);
+    document.getElementById("lab2").innerHTML = name(h)+"·"+name(g)+" = "+name(hg);
+    drawStatic(document.getElementById("cmp1"), gh);
+    drawStatic(document.getElementById("cmp2"), hg);
+    var v = document.getElementById("cmpVerdict"), note=document.getElementById("cmpNote");
+    if(same(gh,hg)){
+      v.className="verdict eq";
+      v.innerHTML = '<span class="pill">same</span> These two commute.';
+      note.innerHTML = "Some pairs do. But a group is not required to, and most pairs here do not — try <i>r</i> with <i>f</i>.";
+    }else{
+      v.className="verdict ne";
+      v.innerHTML = '<span class="pill">different</span> Order matters.';
+      note.innerHTML = "Doing <i>"+name(h)+"</i> first lands corner 1 somewhere else than doing <i>"+name(g)+"</i> first. "+
+                       "Nothing in the four rules we wrote down says it should not. This group is <b>not abelian</b>.";
+    }
+  }
+
+  // ---- Cayley table ---------------------------------------------------------
+  function buildTable(){
+    var els = elements(), t = document.getElementById("cayley"), i, j, html;
+    html = '<thead><tr><th class="corner">g \\ h</th>';
+    for(j=0;j<els.length;j++) html += '<th>'+name(els[j])+'</th>';
+    html += '</tr></thead><tbody>';
+    for(i=0;i<els.length;i++){
+      html += '<tr data-r="'+i+'"><th>'+name(els[i])+'</th>';
+      for(j=0;j<els.length;j++){
+        var p = compose(els[i],els[j]);
+        html += '<td data-r="'+i+'" data-c="'+j+'" style="background:'+colorOf(p,0.85)+'">'+
+                '<button class="cell" data-a="'+p.a+'" data-k="'+p.k+'" '+
+                'title="'+name(els[i])+'·'+name(els[j])+' = '+name(p)+'">'+name(p)+'</button></td>';
+      }
+      html += '</tr>';
+    }
+    t.innerHTML = html + '</tbody>';
+
+    t.querySelectorAll(".cell").forEach(function(b){
+      b.addEventListener("click", function(){
+        var g = {a:+b.dataset.a, k:+b.dataset.k};
+        word = [];
+        if(anim){ cancelAnimationFrame(anim); anim=null; }
+        cur = {a:1,k:0}; disp = 0; setMatrix(mainPiece, matrixOf(cur));
+        apply(g, name(g));
+      });
+    });
+
+    // Latin square check, computed rather than asserted
+    var ok = true;
+    for(i=0;i<els.length;i++){
+      var rowSeen={}, colSeen={};
+      for(j=0;j<els.length;j++){
+        rowSeen[name(compose(els[i],els[j]))]=1;
+        colSeen[name(compose(els[j],els[i]))]=1;
+      }
+      if(Object.keys(rowSeen).length!==els.length || Object.keys(colSeen).length!==els.length) ok=false;
+    }
+    document.getElementById("latin").innerHTML = ok
+      ? "Checked just now: every row and every column holds all <b>"+els.length+"</b> symmetries exactly once — a Latin square. Ask the class why that has to happen. The answer is a theorem with a name, and it is waiting in Lecture 3."
+      : "";
+  }
+
+  function markTable(){
+    var t=document.getElementById("cayley");
+    t.querySelectorAll(".hl").forEach(function(e){ e.classList.remove("hl"); });
+    var els=elements(), idx=-1,i;
+    for(i=0;i<els.length;i++) if(same(els[i],cur)) idx=i;
+    if(idx<0) return;
+    t.querySelectorAll('td[data-r="'+idx+'"]').forEach(function(td){ /* row of the current element */ });
+    var rowTh = t.querySelector('tr[data-r="'+idx+'"]');
+    if(rowTh) rowTh.classList.add("hl");
+  }
+
+  // ---- wiring ---------------------------------------------------------------
+  function rebuild(){
+    mainPiece = buildStage(document.getElementById("main"), 96, 320);
+    cur={a:1,k:0}; disp=0; word=[];
+    setMatrix(mainPiece, matrixOf(cur));
+    fillSelect(document.getElementById("jump"), null);
+    document.getElementById("jump").insertAdjacentHTML("afterbegin",'<option value="" selected>—</option>');
+    fillSelect(document.getElementById("gSel"), {a:1,k:1});
+    fillSelect(document.getElementById("hSel"), {a:-1,k:0});
+    buildTable();
+    refreshReadout();
+    refreshCompare();
+  }
+
+  document.getElementById("btnR").addEventListener("click", function(){ apply({a:1,k:1}, "r"); });
+  document.getElementById("btnRi").addEventListener("click", function(){ apply({a:1,k:mod(-1,n)}, "r⁻¹"); });
+  document.getElementById("btnF").addEventListener("click", function(){ apply({a:-1,k:0}, "f"); });
+  document.getElementById("btnReset").addEventListener("click", function(){
+    if(anim){ cancelAnimationFrame(anim); anim=null; }
+    word=[]; cur={a:1,k:0}; disp=0; setMatrix(mainPiece, matrixOf(cur)); refreshReadout();
+  });
+  document.getElementById("jump").addEventListener("change", function(e){
+    if(!e.target.value) return;
+    var g=parseEl(e.target.value); apply(g,name(g)); e.target.value="";
+  });
+  document.getElementById("shape").addEventListener("change", function(e){ n=+e.target.value; rebuild(); });
+  document.getElementById("gSel").addEventListener("change", refreshCompare);
+  document.getElementById("hSel").addEventListener("change", refreshCompare);
+
+  rebuild();
+})();
+</script>
+</body>
+</html>

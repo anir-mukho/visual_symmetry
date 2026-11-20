@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isomorphism Detective</title>
+<style>
+/* Two tables, one question. Slate paper, indigo structure, rust for a mismatch.
+   Layout: tab strip, then left table | dictionary | right table, then the verdict. */
+:root{
+  --paper:#f4f5f3; --panel:#ffffff; --ink:#191c21; --ink-soft:#5a6069;
+  --rule:#d8dbd6; --rule-soft:#e8eae6;
+  --accent:#3a4fa8; --accent-soft:#e7ebf8;
+  --bad:#a8471f; --bad-soft:#f8ebe5;
+  --good:#1a7a5e; --good-soft:#e4f3ed;
+  --stage:#eceee9;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --accent:#93a8ef; --accent-soft:#242c45;
+  --bad:#e39872; --bad-soft:#3a2a22;
+  --good:#5fcfa8; --good-soft:#1c3630;
+  --stage:#121519; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --accent:#93a8ef; --accent-soft:#242c45;
+  --bad:#e39872; --bad-soft:#3a2a22;
+  --good:#5fcfa8; --good-soft:#1c3630;
+  --stage:#121519; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;font-size:16px;line-height:1.5;
+  padding:24px 20px 56px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;font-size:clamp(28px,4vw,40px);
+  line-height:1.1;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--ink-soft);max-width:66ch}
+h2{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;font-size:20px;margin:0 0 10px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);
+  margin:0 0 8px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--rule);padding-bottom:0}
+.tab{font-family:inherit;font-size:15px;font-weight:500;background:none;border:0;
+  border-bottom:2px solid transparent;color:var(--ink-soft);padding:9px 14px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select,button{font-family:inherit;font-size:15px;color:var(--ink);background:var(--panel);
+  border:1px solid var(--rule);border-radius:7px;padding:8px 11px;cursor:pointer}
+button:hover,select:hover{border-color:var(--ink-soft)}
+button.primary{background:var(--accent-soft);border-color:var(--accent);font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.panels{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.side{flex:1 1 300px;min-width:272px}
+.mid{flex:0 1 220px;min-width:200px}
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px}
+th,td{border:1px solid var(--rule);text-align:center;padding:0}
+th{background:var(--rule-soft);font-weight:600;min-width:38px;height:30px;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:15px;padding:0 5px}
+th.corner{background:var(--panel);font-style:normal;font-size:11px;
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;color:var(--ink-soft)}
+td div{min-width:38px;height:30px;line-height:30px;color:#15181d;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:15px;white-space:nowrap;padding:0 5px}
+td.diff{outline:2px solid var(--bad);outline-offset:-2px}
+.dict{display:flex;flex-direction:column;gap:6px}
+.pair{display:flex;align-items:center;gap:8px;background:var(--rule-soft);
+  border:1px solid transparent;border-radius:7px;padding:5px 9px;cursor:pointer;width:100%;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:17px;color:var(--ink);text-align:left}
+.pair:hover{border-color:var(--ink-soft)}
+.pair[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pair .arrow{font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;font-style:normal;color:var(--ink-soft);font-size:14px}
+.pair .sw{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.pair .lhs,.pair .rhs{min-width:42px}
+.verdict{display:flex;align-items:flex-start;gap:12px;border-radius:9px;padding:14px 16px;
+  border:1px solid var(--rule);background:var(--stage)}
+.verdict.ok{border-color:var(--good);background:var(--good-soft)}
+.verdict.no{border-color:var(--bad);background:var(--bad-soft)}
+.verdict .big{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-size:19px;font-weight:600;margin:0 0 4px}
+.verdict p{margin:0;font-size:15px}
+.inv{width:100%;border-collapse:collapse;font-size:14px;font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif}
+.inv th,.inv td{border:0;border-bottom:1px solid var(--rule-soft);text-align:left;
+  padding:7px 8px;height:auto;background:none;font-family:inherit;font-style:normal;font-weight:400;min-width:0}
+.inv th{color:var(--ink-soft);font-size:13px;font-weight:500;width:34%}
+.inv td{font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px}
+.inv tr.clash td{color:var(--bad);font-weight:500}
+.inv tr.clash th{color:var(--bad)}
+.note{font-size:14px;color:var(--ink-soft);margin:12px 0 0}
+.note b{color:var(--ink);font-weight:600}
+.hidden{display:none}
+/* homomorphism view */
+.fibres{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:6px}
+.fibre{flex:1 1 90px;min-width:78px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.stack{display:flex;flex-direction:column-reverse;gap:4px;width:100%}
+.dom{font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px;text-align:center;
+  border-radius:5px;padding:3px 4px;color:#15181d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.codom{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:18px;
+  border:1px solid var(--ink-soft);border-radius:6px;padding:4px 8px;width:100%;text-align:center}
+.fibre.ker .codom{border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+.kerlabel{font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.03em}
+.wrapline{display:block;width:100%;height:auto;background:var(--stage);
+  border:1px solid var(--rule-soft);border-radius:8px}
+@media (max-width:560px){ body{padding:16px 14px 40px} .card{padding:14px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Isomorphism Detective</h1>
+    <p class="lede">Two groups are the same group if you can rename the elements of one and get the other. Build the dictionary yourself. When the two pictures match, you have found an isomorphism; when an invariant disagrees, no dictionary can exist.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-iso" role="tab" aria-selected="true" aria-controls="view-iso">Same group?</button>
+    <button class="tab" id="tab-hom" role="tab" aria-selected="false" aria-controls="view-hom">Homomorphisms</button>
+  </div>
+
+  <!-- ===================== ISOMORPHISM VIEW ===================== -->
+  <section id="view-iso" role="tabpanel" aria-labelledby="tab-iso">
+    <div class="card">
+      <div class="controls">
+        <label class="note" style="margin:0" for="selL">Left group</label>
+        <select id="selL"></select>
+        <label class="note" style="margin:0" for="selR">Right group</label>
+        <select id="selR"></select>
+        <button id="btnShuffle">shuffle the dictionary</button>
+        <button class="primary" id="btnSolve">find one for me</button>
+      </div>
+
+      <div class="panels" style="margin-top:18px">
+        <div class="side">
+          <h3 id="titleL">Left</h3>
+          <div class="tablebox"><table id="tblL"></table></div>
+        </div>
+        <div class="mid">
+          <h3>Your dictionary</h3>
+          <div class="dict" id="dict"></div>
+          <p class="note" id="dictHint">Click two rows to swap the right-hand names.</p>
+        </div>
+        <div class="side">
+          <h3 id="titleR">Right</h3>
+          <div class="tablebox"><table id="tblR"></table></div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px" class="verdict" id="verdict">
+        <div>
+          <p class="big" id="vTitle">—</p>
+          <p id="vBody"></p>
+        </div>
+      </div>
+
+      <div class="panels" style="margin-top:18px">
+        <div class="side">
+          <h3>Invariants</h3>
+          <table class="inv" id="invTable"></table>
+        </div>
+        <div class="side">
+          <p class="note" style="margin:0" id="invNote"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HOMOMORPHISM VIEW ===================== -->
+  <section id="view-hom" class="hidden" role="tabpanel" aria-labelledby="tab-hom">
+    <div class="card">
+      <div class="controls">
+        <label class="note" style="margin:0" for="selHom">Homomorphism</label>
+        <select id="selHom"></select>
+      </div>
+      <h2 style="margin-top:18px" id="homTitle"></h2>
+      <p class="note" style="margin-top:0" id="homWords"></p>
+
+      <svg id="wrapSvg" class="wrapline" viewBox="0 0 760 180" role="img" aria-label="the number line wrapped onto a circle"></svg>
+
+      <h3 style="margin-top:20px">The fibres</h3>
+      <div class="fibres" id="fibres"></div>
+      <p class="note" id="homRead"></p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- group library ---------------- */
+  // Each group: {name, els:[labels], mul:(i,j)->k} built from a concrete model.
+  function fromModel(name, values, mulVal, label){
+    var els = values.map(label), key = {}, i;
+    for(i=0;i<values.length;i++) key[JSON.stringify(values[i])] = i;
+    var table = values.map(function(a){
+      return values.map(function(b){ return key[JSON.stringify(mulVal(a,b))]; });
+    });
+    return {name:name, els:els, table:table, n:values.length};
+  }
+  function Zn(n,nm){
+    return fromModel(nm||("Z"+sub(n)+" under +"), range(n), function(a,b){ return (a+b)%n; }, String);
+  }
+  function range(n){ var o=[],i; for(i=0;i<n;i++)o.push(i); return o; }
+  function sub(n){ return String(n).split("").map(function(d){ return "₀₁₂₃₄₅₆₇₈₉"[+d]; }).join(""); }
+  var SUP=["","","²","³","⁴","⁵","⁶","⁷"];
+
+  function units(m,nm){
+    var v=[],a; for(a=1;a<m;a++) if(gcd(a,m)===1) v.push(a);
+    return fromModel(nm, v, function(x,y){ return (x*y)%m; }, String);
+  }
+  function gcd(a,b){ while(b){ var t=a%b; a=b; b=t; } return a; }
+
+  function dihedral(k,nm){
+    var v=[],a,i;
+    for(i=0;i<k;i++) v.push([1,i]);
+    for(i=0;i<k;i++) v.push([-1,i]);
+    return fromModel(nm, v, function(g,h){ return [g[0]*h[0], ((g[0]*h[1]+g[1])%k+k)%k]; },
+      function(g){ return g[0]===1 ? (g[1]===0?"e":"r"+SUP[g[1]]) : (g[1]===0?"f":"r"+SUP[g[1]]+"f"); });
+  }
+  function product(parts,nm,lab){
+    var v=[[]],i;
+    for(i=0;i<parts.length;i++){
+      var next=[];
+      v.forEach(function(t){ for(var x=0;x<parts[i];x++) next.push(t.concat([x])); });
+      v=next;
+    }
+    return fromModel(nm, v, function(a,b){ return a.map(function(x,i){ return (x+b[i])%parts[i]; }); },
+      lab || function(t){ return "("+t.join(",")+")"; });
+  }
+  function symmetric3(nm){
+    var v=[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[2,1,0],[1,0,2]];
+    var names={"0,1,2":"e","1,2,0":"(123)","2,0,1":"(132)","0,2,1":"(23)","2,1,0":"(13)","1,0,2":"(12)"};
+    return fromModel(nm, v, function(p,q){ return [p[q[0]],p[q[1]],p[q[2]]]; },
+      function(p){ return names[p.join(",")]; });
+  }
+  function quaternion(nm){
+    var lab=["1","-1","i","-i","j","-j","k","-k"];
+    // encode as (sign, unit) with unit in {1,i,j,k}
+    var v=[[1,0],[-1,0],[1,1],[-1,1],[1,2],[-1,2],[1,3],[-1,3]];
+    var mulU=[[[1,0],[1,1],[1,2],[1,3]],
+              [[1,1],[-1,0],[1,3],[-1,2]],
+              [[1,2],[-1,3],[-1,0],[1,1]],
+              [[1,3],[1,2],[-1,1],[-1,0]]];
+    return fromModel(nm, v, function(a,b){
+      var r=mulU[a[1]][b[1]]; return [a[0]*b[0]*r[0], r[1]];
+    }, function(a){ return lab[a[1]*2 + (a[0]===1?0:1)]; });
+  }
+
+  var LIB = [
+    Zn(4, "Z₄ under +"),
+    {ref:"rot4"}, {ref:"roots4"}, units(5, "{1,2,3,4} times mod 5"),
+    {ref:"rect"}, units(8, "{1,3,5,7} times mod 8"),
+    product([2,2], "Z₂ × Z₂"),
+    Zn(6, "Z₆ under +"), symmetric3("S₃"), dihedral(3,"D₃, the triangle"),
+    product([2,3], "Z₂ × Z₃"), units(7,"{1,...,6} times mod 7"),
+    Zn(8, "Z₈ under +"), product([2,4], "Z₂ × Z₄"),
+    product([2,2,2], "Z₂ × Z₂ × Z₂"),
+    dihedral(4, "D₄, the square"), quaternion("Q₈, the quaternions"),
+    Zn(3,"Z₃ under +"), Zn(5,"Z₅ under +"), Zn(7,"Z₇ under +")
+  ].map(function(g){
+    if(!g.ref) return g;
+    if(g.ref==="rot4") return fromModel("rotations of a square", range(4),
+      function(a,b){ return (a+b)%4; }, function(k){ return k===0?"e":"r"+SUP[k]; });
+    if(g.ref==="roots4") return fromModel("{1, i, −1, −i} times", range(4),
+      function(a,b){ return (a+b)%4; }, function(k){ return ["1","i","−1","−i"][k]; });
+    return fromModel("the rectangle group", [[0,0],[0,1],[1,0],[1,1]],
+      function(a,b){ return [(a[0]+b[0])%2,(a[1]+b[1])%2]; },
+      function(t){ return ["e","h","v","hv"][t[0]*2+t[1]]; });
+  });
+
+  /* ---------------- invariants ---------------- */
+  function identityIdx(g){
+    for(var e=0;e<g.n;e++){
+      var ok=true;
+      for(var x=0;x<g.n;x++) if(g.table[e][x]!==x || g.table[x][e]!==x){ ok=false; break; }
+      if(ok) return e;
+    }
+    return 0;
+  }
+  function elemOrder(g,x){
+    var e=identityIdx(g), p=e, i;
+    for(i=1;i<=g.n;i++){ p=g.table[p][x]; if(p===e) return i; }
+    return 0;
+  }
+  function orderProfile(g){
+    var m={},x;
+    for(x=0;x<g.n;x++){ var o=elemOrder(g,x); m[o]=(m[o]||0)+1; }
+    return m;
+  }
+  function profileText(g){
+    var m=orderProfile(g);
+    return Object.keys(m).map(Number).sort(function(a,b){return a-b;})
+      .map(function(o){ return m[o]+"× order "+o; }).join(",  ");
+  }
+  function isAbelian(g){
+    for(var i=0;i<g.n;i++) for(var j=0;j<i;j++) if(g.table[i][j]!==g.table[j][i]) return false;
+    return true;
+  }
+  function isCyclic(g){
+    for(var x=0;x<g.n;x++) if(elemOrder(g,x)===g.n) return true;
+    return false;
+  }
+  function sameProfile(a,b){
+    var pa=orderProfile(a), pb=orderProfile(b), k;
+    for(k in pa) if(pa[k]!==pb[k]) return false;
+    for(k in pb) if(pa[k]!==pb[k]) return false;
+    return true;
+  }
+
+  /* ---------------- palette ---------------- */
+  var HUES=[230,158,24,286,45,196,340,96];
+  function col(i,l){ return "hsl("+HUES[i%8]+",52%,"+(l===undefined?76:l)+"%)"; }
+
+  /* ---------------- state ---------------- */
+  var L=LIB[0], R=LIB[4], ord=[], picked=-1;
+
+  function resetOrder(){ ord = range(R.n); picked=-1; }
+
+  function renderSelects(){
+    var o=LIB.map(function(g,i){ return '<option value="'+i+'">'+g.name+" ("+g.n+")"+'</option>'; }).join("");
+    var sl=document.getElementById("selL"), sr=document.getElementById("selR");
+    sl.innerHTML=o; sr.innerHTML=o;
+    sl.value=String(LIB.indexOf(L)); sr.value=String(LIB.indexOf(R));
+  }
+
+  function mismatches(){
+    // cell (i,j): is right[ord[i]]*right[ord[j]] the right-hand name of left[i*j]?
+    var bad=[],i,j;
+    if(L.n!==R.n) return null;
+    for(i=0;i<L.n;i++) for(j=0;j<L.n;j++){
+      if(R.table[ord[i]][ord[j]] !== ord[L.table[i][j]]) bad.push(i+","+j);
+    }
+    return bad;
+  }
+
+  function renderTables(){
+    var bad = mismatches(), badSet = {};
+    if(bad) bad.forEach(function(k){ badSet[k]=1; });
+
+    // left: cell shows left's own product, coloured by its POSITION index
+    var h='<thead><tr><th class="corner">·</th>';
+    for(var j=0;j<L.n;j++) h+='<th>'+L.els[j]+'</th>';
+    h+='</tr></thead><tbody>';
+    for(var i=0;i<L.n;i++){
+      h+='<tr><th>'+L.els[i]+'</th>';
+      for(j=0;j<L.n;j++){
+        var p=L.table[i][j];
+        h+='<td'+(badSet[i+","+j]?' class="diff"':'')+'><div style="background:'+col(p)+'">'+L.els[p]+'</div></td>';
+      }
+      h+='</tr>';
+    }
+    document.getElementById("tblL").innerHTML=h+'</tbody>';
+
+    // right: rows and columns in the order given by the dictionary, coloured by POSITION too
+    h='<thead><tr><th class="corner">·</th>';
+    for(j=0;j<R.n;j++) h+='<th>'+R.els[ord[j]]+'</th>';
+    h+='</tr></thead><tbody>';
+    for(i=0;i<R.n;i++){
+      h+='<tr><th>'+R.els[ord[i]]+'</th>';
+      for(j=0;j<R.n;j++){
+        var q=R.table[ord[i]][ord[j]], pos=ord.indexOf(q);
+        h+='<td'+(badSet[i+","+j]?' class="diff"':'')+'><div style="background:'+col(pos)+'">'+R.els[q]+'</div></td>';
+      }
+      h+='</tr>';
+    }
+    document.getElementById("tblR").innerHTML=h+'</tbody>';
+
+    document.getElementById("titleL").textContent=L.name;
+    document.getElementById("titleR").textContent=R.name;
+  }
+
+  function renderDict(){
+    var d=document.getElementById("dict"), h="", i;
+    if(L.n!==R.n){
+      d.innerHTML='<p class="note" style="margin:0">These groups have different sizes, so there is no dictionary to build. A bijection does not even exist.</p>';
+      document.getElementById("dictHint").textContent="";
+      return;
+    }
+    for(i=0;i<L.n;i++){
+      h+='<button class="pair" data-i="'+i+'" aria-pressed="'+(picked===i)+'">'+
+         '<span class="sw" style="background:'+col(i)+'"></span>'+
+         '<span class="lhs">'+L.els[i]+'</span><span class="arrow">→</span>'+
+         '<span class="rhs">'+R.els[ord[i]]+'</span></button>';
+    }
+    d.innerHTML=h;
+    d.querySelectorAll(".pair").forEach(function(b){
+      b.addEventListener("click", function(){
+        var i=+b.dataset.i;
+        if(picked<0){ picked=i; }
+        else if(picked===i){ picked=-1; }
+        else { var t=ord[picked]; ord[picked]=ord[i]; ord[i]=t; picked=-1; }
+        draw();
+      });
+    });
+    document.getElementById("dictHint").textContent = picked>=0
+      ? "Now click another row to swap it with " + L.els[picked] + "’s partner."
+      : "Click two rows to swap the right-hand names.";
+  }
+
+  function renderVerdict(){
+    var v=document.getElementById("verdict"), t=document.getElementById("vTitle"), b=document.getElementById("vBody");
+    if(L.n!==R.n){
+      v.className="verdict no";
+      t.textContent="Different sizes, so not isomorphic.";
+      b.innerHTML = L.name+" has "+L.n+" elements and "+R.name+" has "+R.n+". An isomorphism has to be a bijection first of all.";
+      return;
+    }
+    var bad=mismatches();
+    if(bad.length===0){
+      v.className="verdict ok";
+      t.textContent="The two tables agree. This dictionary is an isomorphism.";
+      b.innerHTML = "Read it off: " + range(L.n).map(function(i){
+        return "<i>"+L.els[i]+"</i>→<i>"+R.els[ord[i]]+"</i>"; }).join(", ") +
+        ". Every product is sent to the product of the images, so these are the same group wearing different clothes.";
+    }else{
+      var possible = sameProfile(L,R) && isAbelian(L)===isAbelian(R);
+      v.className="verdict no";
+      t.textContent = bad.length + (bad.length===1?" entry disagrees.":" entries disagree.");
+      b.innerHTML = possible
+        ? "Keep swapping — the invariants below all match, so an isomorphism may well exist. The outlined cells are where this particular dictionary fails."
+        : "No amount of swapping will fix this. Look at the invariants below: they already differ, which is a proof that no dictionary can work.";
+    }
+  }
+
+  function renderInvariants(){
+    var rows=[
+      ["number of elements", L.n, R.n],
+      ["abelian?", isAbelian(L)?"yes":"no", isAbelian(R)?"yes":"no"],
+      ["cyclic?", isCyclic(L)?"yes":"no", isCyclic(R)?"yes":"no"],
+      ["orders of elements", profileText(L), profileText(R)]
+    ];
+    var h='<tr><th></th><td style="font-weight:500">'+L.name+'</td><td style="font-weight:500">'+R.name+'</td></tr>';
+    var clash=null;
+    rows.forEach(function(r){
+      var bad = String(r[1])!==String(r[2]);
+      if(bad && !clash) clash=r[0];
+      h+='<tr'+(bad?' class="clash"':'')+'><th>'+r[0]+'</th><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>';
+    });
+    document.getElementById("invTable").innerHTML=h;
+    var note=document.getElementById("invNote");
+    if(clash){
+      note.innerHTML = "<b>They differ on "+clash+".</b> An isomorphism would have to preserve it, so there is no isomorphism. "+
+        "This is how you prove two groups are <i>different</i> — you never have to search through dictionaries.";
+    }else if(L.n===R.n){
+      note.innerHTML = "<b>Every invariant on this list matches.</b> That is not a proof: matching invariants never establish an isomorphism, only an actual dictionary does. "+
+        "Non-isomorphic groups agreeing on all of these do exist.";
+    }else{ note.innerHTML=""; }
+  }
+
+  function solve(){
+    if(L.n!==R.n) return false;
+    var m=L.n, assign=new Array(m).fill(-1), used=new Array(m).fill(false);
+    var ordL=range(m).map(function(x){ return elemOrder(L,x); });
+    var ordR=range(m).map(function(x){ return elemOrder(R,x); });
+    function consistent(slot){
+      var i,j;
+      for(i=0;i<=slot;i++) for(j=0;j<=slot;j++){
+        var t=L.table[i][j];
+        if(t<=slot){
+          if(R.table[assign[i]][assign[j]] !== assign[t]) return false;
+        }
+      }
+      return true;
+    }
+    function go(slot){
+      if(slot===m) return true;
+      for(var c=0;c<m;c++){
+        if(used[c] || ordR[c]!==ordL[slot]) continue;
+        assign[slot]=c; used[c]=true;
+        if(consistent(slot) && go(slot+1)) return true;
+        used[c]=false; assign[slot]=-1;
+      }
+      return false;
+    }
+    if(go(0)){ ord=assign.slice(); picked=-1; return true; }
+    return false;
+  }
+
+  function draw(){ renderDict(); renderTables(); renderVerdict(); renderInvariants(); }
+
+  document.getElementById("selL").addEventListener("change",function(e){
+    L=LIB[+e.target.value]; resetOrder(); draw(); });
+  document.getElementById("selR").addEventListener("change",function(e){
+    R=LIB[+e.target.value]; resetOrder(); draw(); });
+  document.getElementById("btnShuffle").addEventListener("click",function(){
+    var i,j,t; for(i=ord.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=ord[i];ord[i]=ord[j];ord[j]=t; }
+    picked=-1; draw(); });
+  document.getElementById("btnSolve").addEventListener("click",function(){
+    if(!solve()){
+      var v=document.getElementById("verdict");
+      v.className="verdict no";
+      document.getElementById("vTitle").textContent="There is no isomorphism to find.";
+      document.getElementById("vBody").innerHTML="A complete search over every dictionary comes back empty. These two groups are genuinely different.";
+      renderInvariants();
+      return;
+    }
+    draw(); });
+
+  /* ---------------- homomorphism view ---------------- */
+  var HOMS = [
+    {t:"Z → Z₅, wrap the number line round a circle of five", n:5, kind:"Z"},
+    {t:"Z → Z₃, wrap the number line round a circle of three", n:3, kind:"Z"},
+    {t:"Z₁₂ → Z₄, remainder on division by 4", kind:"fin",
+      G:Zn(12,"Z₁₂"), H:Zn(4,"Z₄"), f:function(x){ return x%4; }},
+    {t:"Z₆ → Z₃, remainder on division by 3", kind:"fin",
+      G:Zn(6,"Z₆"), H:Zn(3,"Z₃"), f:function(x){ return x%3; }},
+    {t:"D₄ → {±1}, did you flip or not?", kind:"fin",
+      G:dihedral(4,"D₄"), H:fromModel("{±1}",[0,1],function(a,b){return (a+b)%2;},function(k){return k?"−1":"+1";}),
+      f:function(x){ return x<4?0:1; }},
+    {t:"S₃ → {±1}, the sign of a permutation", kind:"fin",
+      G:symmetric3("S₃"), H:fromModel("{±1}",[0,1],function(a,b){return (a+b)%2;},function(k){return k?"−1":"+1";}),
+      f:function(x){ return x<3?0:1; }},
+    {t:"Z₄ → Z₂, remainder on division by 2", kind:"fin",
+      G:Zn(4,"Z₄"), H:Zn(2,"Z₂"), f:function(x){ return x%2; }}
+  ];
+
+  function drawWrap(n){
+    var svg=document.getElementById("wrapSvg"), s="", i;
+    var lo=-9, hi=9, x0=40, x1=720, y=48;
+    s+='<line x1="'+x0+'" y1="'+y+'" x2="'+x1+'" y2="'+y+'" stroke="var(--rule)" stroke-width="1.5"/>';
+    for(i=lo;i<=hi;i++){
+      var x = x0 + (i-lo)*(x1-x0)/(hi-lo), r=((i%n)+n)%n;
+      s+='<circle cx="'+x.toFixed(1)+'" cy="'+y+'" r="7" fill="'+col(r,r===0?62:78)+'" stroke="var(--ink-soft)" stroke-width="'+(r===0?1.6:0.8)+'"/>';
+      s+='<text x="'+x.toFixed(1)+'" y="'+(y-16)+'" text-anchor="middle" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="11" fill="var(--ink-soft)">'+i+'</text>';
+    }
+    s+='<text x="'+x0+'" y="'+(y+28)+'" font-family="system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif" font-size="12" fill="var(--ink-soft)">the integers, coloured by where they land</text>';
+    // the circle
+    var cx=380, cy=132, R=36;
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="var(--rule)" stroke-width="1.5"/>';
+    for(i=0;i<n;i++){
+      var a=(-90+i*360/n)*Math.PI/180, px=cx+R*Math.cos(a), py=cy+R*Math.sin(a);
+      s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="10" fill="'+col(i,i===0?62:78)+'" stroke="var(--ink-soft)" stroke-width="'+(i===0?1.6:0.8)+'"/>';
+      s+='<text x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="11" fill="#15181d">'+i+'</text>';
+    }
+    s+='<text x="'+(cx+R+16)+'" y="'+(cy+4)+'" font-family="system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif" font-size="12" fill="var(--ink-soft)">Z'+sub(n)+'</text>';
+    svg.innerHTML=s;
+  }
+
+  function renderHom(){
+    var H=HOMS[+document.getElementById("selHom").value];
+    document.getElementById("homTitle").textContent=H.t;
+    var box=document.getElementById("fibres"), svg=document.getElementById("wrapSvg");
+    var words=document.getElementById("homWords"), read=document.getElementById("homRead");
+
+    if(H.kind==="Z"){
+      svg.classList.remove("hidden");
+      drawWrap(H.n);
+      words.innerHTML="Adding 1 to an integer moves you one step round the circle, so addition in Z becomes addition in Z"+sub(H.n)+". That is the whole content of “respects the operation”.";
+      var h="",i;
+      for(i=0;i<H.n;i++){
+        var members=[]; for(var k=-9;k<=9;k++) if(((k%H.n)+H.n)%H.n===i) members.push(k);
+        h+='<div class="fibre'+(i===0?' ker':'')+'">'+
+           (i===0?'<span class="kerlabel">the kernel</span>':'')+
+           '<div class="stack">'+members.map(function(m){
+             return '<div class="dom" style="background:'+col(i)+'">'+m+'</div>'; }).join("")+'</div>'+
+           '<div class="codom">'+i+'</div></div>';
+      }
+      box.innerHTML=h;
+      read.innerHTML="Each column is a <b>fibre</b>: everything sent to the same place. The fibre over 0 is the kernel, the multiples of "+H.n+
+        ". Every other fibre is that same set shifted along, so all "+H.n+" of them are the same size. "+
+        "Those columns are the <b>cosets</b> of the kernel, and the fact that they are all the same size is Lagrange’s theorem waiting to happen.";
+      return;
+    }
+
+    svg.classList.add("hidden");
+    var G=H.G, K=H.H, imgs={}, i;
+    for(i=0;i<G.n;i++){ var t=H.f(i); (imgs[t]=imgs[t]||[]).push(i); }
+    var eH=identityIdx(K), ker=imgs[eH]||[];
+    var h="";
+    Object.keys(imgs).map(Number).sort(function(a,b){return a-b;}).forEach(function(t){
+      h+='<div class="fibre'+(t===eH?' ker':'')+'">'+
+         (t===eH?'<span class="kerlabel">the kernel</span>':'')+
+         '<div class="stack">'+imgs[t].map(function(x){
+           return '<div class="dom" style="background:'+col(t)+'">'+G.els[x]+'</div>'; }).join("")+'</div>'+
+         '<div class="codom">'+K.els[t]+'</div></div>';
+    });
+    box.innerHTML=h;
+    var nf=Object.keys(imgs).length;
+    words.innerHTML="Drop the requirement that the map be a bijection and keep only “the image of a product is the product of the images”. Everything still works, but information is lost.";
+    read.innerHTML="The kernel has <b>"+ker.length+"</b> element"+(ker.length===1?"":"s")+
+      " and the image has <b>"+nf+"</b>. Every fibre has exactly "+ker.length+" element"+(ker.length===1?"":"s")+
+      ", so "+G.n+" = "+ker.length+" × "+nf+". "+
+      (ker.length===1
+        ? "The kernel is trivial, so this map is injective — nothing is lost, and the image is a copy of the domain."
+        : "That is why a homomorphism always splits its domain into equal stacks, and it is the shape of Lagrange’s theorem.");
+  }
+
+  /* ---------------- tabs ---------------- */
+  function show(which){
+    var iso=which==="iso";
+    document.getElementById("view-iso").classList.toggle("hidden",!iso);
+    document.getElementById("view-hom").classList.toggle("hidden",iso);
+    document.getElementById("tab-iso").setAttribute("aria-selected",String(iso));
+    document.getElementById("tab-hom").setAttribute("aria-selected",String(!iso));
+  }
+  document.getElementById("tab-iso").addEventListener("click",function(){ show("iso"); });
+  document.getElementById("tab-hom").addEventListener("click",function(){ show("hom"); renderHom(); });
+
+  /* ---------------- boot ---------------- */
+  renderSelects();
+  resetOrder();
+  draw();
+  document.getElementById("selHom").innerHTML=HOMS.map(function(h,i){
+    return '<option value="'+i+'">'+h.t+'</option>'; }).join("");
+  renderHom();
+  show("iso");
+})();
+</script>
+</body>
+</html>

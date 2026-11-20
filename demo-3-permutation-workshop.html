@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permutation Workshop</title>
+<style>
+/* Strands, cycles and one stubborn invariant. Slate paper, indigo even, rust odd.
+   Layout: one permutation on top, the 15-puzzle in the middle, Cayley's theorem last. */
+:root{
+  --paper:#f4f5f3; --panel:#ffffff; --ink:#191c21; --ink-soft:#5a6069;
+  --rule:#d8dbd6; --rule-soft:#e8eae6;
+  --even:#3a4fa8; --even-soft:#e7ebf8;
+  --odd:#a8471f; --odd-soft:#f8ebe5;
+  --good:#1a7a5e; --good-soft:#e4f3ed;
+  --stage:#eceee9; --tile:#e3e6e0;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --even:#93a8ef; --even-soft:#242c45;
+  --odd:#e39872; --odd-soft:#3a2a22;
+  --good:#5fcfa8; --good-soft:#1c3630;
+  --stage:#121519; --tile:#2a3038; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --even:#93a8ef; --even-soft:#242c45;
+  --odd:#e39872; --odd-soft:#3a2a22;
+  --good:#5fcfa8; --good-soft:#1c3630;
+  --stage:#121519; --tile:#2a3038; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;font-size:16px;line-height:1.5;
+  padding:24px 20px 56px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;font-size:clamp(28px,4vw,40px);
+  line-height:1.1;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--ink-soft);max-width:66ch}
+h2{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-weight:600;font-size:21px;margin:0 0 4px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);
+  margin:0 0 8px;font-weight:600}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.sub{color:var(--ink-soft);font-size:14px;margin:0 0 16px;max-width:70ch}
+select,button{font-family:inherit;font-size:15px;color:var(--ink);background:var(--panel);
+  border:1px solid var(--rule);border-radius:7px;padding:8px 11px;cursor:pointer}
+button:hover,select:hover{border-color:var(--ink-soft)}
+button:focus-visible,select:focus-visible,.slot:focus-visible,.tile:focus-visible{outline:2px solid var(--even);outline-offset:2px}
+button.primary{background:var(--even-soft);border-color:var(--even);font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.controls label{font-size:14px;color:var(--ink-soft)}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 320px;min-width:290px}
+/* editable permutation */
+.slots{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end}
+.slotwrap{display:flex;flex-direction:column;align-items:center;gap:3px}
+.slotwrap .idx{font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:11px;color:var(--ink-soft)}
+.slot{width:44px;height:44px;border-radius:8px;border:1px solid var(--rule);
+  background:var(--tile);font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:19px;font-weight:600;
+  color:var(--ink);cursor:pointer;padding:0}
+.slot[aria-pressed="true"]{border-color:var(--even);background:var(--even-soft);border-width:2px}
+.swapnote{font-size:14px;color:var(--ink-soft);margin:10px 0 0}
+svg.pane{display:block;width:100%;height:auto;background:var(--stage);
+  border:1px solid var(--rule-soft);border-radius:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;align-items:baseline;margin:0}
+.kv dt{color:var(--ink-soft);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.kv dd{margin:0;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:15px}
+.badge{display:inline-block;font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;font-size:13px;font-weight:600;
+  border-radius:999px;padding:2px 11px;border:1px solid currentColor}
+.badge.e{color:var(--even);background:var(--even-soft)}
+.badge.o{color:var(--odd);background:var(--odd-soft)}
+.powers{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.pow{font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:12px;background:var(--rule-soft);
+  border-radius:5px;padding:4px 7px;white-space:nowrap}
+.pow.last{background:var(--good-soft);color:var(--good);font-weight:600}
+/* puzzle */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;max-width:300px;
+  background:var(--stage);padding:8px;border-radius:10px;border:1px solid var(--rule-soft)}
+.tile{aspect-ratio:1;border-radius:7px;border:1px solid var(--rule);background:var(--tile);
+  font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:20px;font-weight:600;color:var(--ink);
+  cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.tile.blank{background:transparent;border-style:dashed;cursor:default;color:transparent}
+.tile.movable:hover{border-color:var(--even);background:var(--even-soft)}
+.invbox{border-radius:9px;padding:14px 16px;border:1px solid var(--rule);background:var(--stage)}
+.invbox.ok{border-color:var(--good);background:var(--good-soft)}
+.invbox.no{border-color:var(--odd);background:var(--odd-soft)}
+.invbox .head{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-size:19px;font-weight:600;margin:0 0 6px}
+.invbox p{margin:0;font-size:14px}
+.history{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.hbit{font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:11px;background:var(--panel);
+  border:1px solid var(--rule);border-radius:4px;padding:2px 5px;color:var(--ink-soft)}
+/* cayley */
+table{border-collapse:collapse;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px}
+th,td{border:1px solid var(--rule);text-align:center;padding:0}
+th{background:var(--rule-soft);font-weight:600;min-width:40px;height:30px;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:15px;padding:0 5px}
+th.corner{background:var(--panel);font-style:normal;font-size:11px;
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;color:var(--ink-soft)}
+th.rowhead{cursor:pointer}
+th.rowhead:hover{background:var(--even-soft)}
+tr.sel th.rowhead{background:var(--even);color:#fff}
+td div{min-width:40px;height:30px;line-height:30px;padding:0 5px;
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:15px;color:#15181d}
+tr.sel td div{outline:2px solid var(--even);outline-offset:-2px}
+.tablebox{overflow-x:auto}
+.lamlist{display:flex;flex-direction:column;gap:5px;font-family:ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace;font-size:13px}
+.lamlist div{display:flex;gap:10px}
+.lamlist .g{font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic;font-size:16px;min-width:34px}
+.note{font-size:14px;color:var(--ink-soft);margin:14px 0 0}
+.note b{color:var(--ink);font-weight:600}
+@media (max-width:560px){ body{padding:16px 14px 40px} .card{padding:14px} .slot{width:38px;height:38px;font-size:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Permutation Workshop</h1>
+    <p class="lede">Shuffles, drawn as strands. Count the crossings and you have the sign; follow the arrows and you have the cycles. Then one puzzle that cannot be solved, and the reason every finite group is secretly a group of shuffles.</p>
+  </header>
+
+  <!-- ============ ONE PERMUTATION ============ -->
+  <section class="card">
+    <h2>One permutation</h2>
+    <p class="sub">Click two boxes to swap them. Each swap is a single transposition, so watch the sign flip every single time — that is the whole of parity, in front of you.</p>
+    <div class="controls">
+      <label for="nSel">how many</label>
+      <select id="nSel">
+        <option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+      <button id="btnRand">random</button>
+      <button id="btnCycle">one long cycle</button>
+      <button id="btnId">back to identity</button>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <h3>Strands: top <i>i</i> joins bottom <i>&sigma;(i)</i></h3>
+        <div class="slots" id="slots"></div>
+        <svg class="pane" id="wire" viewBox="0 0 420 150" role="img" aria-label="wiring diagram of the permutation"></svg>
+        <p class="swapnote" id="swapnote">Each crossing of two strands is one inversion.</p>
+      </div>
+      <div class="col">
+        <h3>Follow the arrows</h3>
+        <svg class="pane" id="digraph" viewBox="0 0 420 150" role="img" aria-label="cycle diagram of the permutation"></svg>
+        <dl class="kv" style="margin-top:14px">
+          <dt>One line</dt><dd id="rOne"></dd>
+          <dt>Cycles</dt><dd id="rCyc"></dd>
+          <dt>Cycle type</dt><dd id="rType"></dd>
+          <dt>Order</dt><dd id="rOrd"></dd>
+          <dt>Crossings</dt><dd id="rInv"></dd>
+          <dt>Sign</dt><dd id="rSign"></dd>
+        </dl>
+        <div class="powers" id="powers"></div>
+        <p class="note" id="signnote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 15 PUZZLE ============ -->
+  <section class="card">
+    <h2>The 15-puzzle, and Loyd&rsquo;s prize</h2>
+    <p class="sub">In 1880 Sam Loyd offered $1000 to anyone who could swap the 14 and the 15 and slide the board back to order. He never paid out. Press his position below, then try. The quantity on the right never budges, whatever you do.</p>
+    <div class="controls">
+      <button id="btnSolved">solved</button>
+      <button class="primary" id="btnLoyd">Loyd&rsquo;s position</button>
+      <button id="btnScramble">legal scramble</button>
+      <button id="btnAny">any arrangement</button>
+    </div>
+    <div class="row">
+      <div style="flex:0 1 320px">
+        <div class="board" id="board"></div>
+        <p class="note" id="moves">0 moves</p>
+      </div>
+      <div class="col">
+        <div class="invbox" id="invbox">
+          <p class="head" id="invHead"></p>
+          <p id="invBody"></p>
+        </div>
+        <dl class="kv" style="margin-top:14px">
+          <dt>Sign of the arrangement</dt><dd id="pSign"></dd>
+          <dt>Blank&rsquo;s distance home</dt><dd id="pDist"></dd>
+          <dt>The invariant</dt><dd id="pInv"></dd>
+        </dl>
+        <h3 style="margin-top:14px">The invariant after each move</h3>
+        <div class="history" id="hist"></div>
+        <p class="note">Every slide swaps the blank with a neighbour, so the sign flips — and the blank moves one step, so its distance home flips parity too. The product of the two cannot change. That is the whole proof.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CAYLEY ============ -->
+  <section class="card">
+    <h2>Every group is a group of shuffles</h2>
+    <p class="sub">Look at any row of a Cayley table: it holds every element exactly once, so the row <i>is</i> a permutation of the group. Click a row name to see which one.</p>
+    <div class="controls">
+      <label for="gSel">group</label>
+      <select id="gSel"></select>
+    </div>
+    <div class="row">
+      <div style="flex:0 1 auto">
+        <div class="tablebox"><table id="cay"></table></div>
+      </div>
+      <div class="col">
+        <h3 id="lamTitle">The permutation of that row</h3>
+        <svg class="pane" id="lamWire" viewBox="0 0 420 130" role="img" aria-label="the chosen row as a permutation"></svg>
+        <dl class="kv" style="margin-top:12px">
+          <dt>Numbering</dt><dd id="lamNum"></dd>
+          <dt>Row of <span id="lamG" style="font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;font-style:italic"></span></dt><dd id="lamPerm"></dd>
+          <dt>In cycles</dt><dd id="lamCyc"></dd>
+          <dt>Sign</dt><dd id="lamSign"></dd>
+        </dl>
+        <h3 style="margin-top:16px">All of them at once</h3>
+        <div class="lamlist" id="lamAll"></div>
+        <p class="note" id="cayNote"></p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var HUES=[230,158,24,286,45,196,340,96,255,180];
+  function col(i,l){ return "hsl("+HUES[i%HUES.length]+",54%,"+(l===undefined?64:l)+"%)"; }
+  function lcm(a,b){ var x=a,y=b,t; while(y){ t=x%y; x=y; y=t; } return a/x*b; }
+
+  /* ================= permutation helpers (0-based arrays) ================= */
+  function identity(n){ var p=[],i; for(i=0;i<n;i++)p.push(i); return p; }
+  function inversions(p){ var c=0,i,j; for(i=0;i<p.length;i++) for(j=i+1;j<p.length;j++) if(p[i]>p[j]) c++; return c; }
+  function cycles(p){
+    var seen=new Array(p.length).fill(false), out=[], i, j, c;
+    for(i=0;i<p.length;i++){
+      if(seen[i]) continue;
+      c=[]; j=i;
+      while(!seen[j]){ seen[j]=true; c.push(j); j=p[j]; }
+      out.push(c);
+    }
+    return out;
+  }
+  function cycleText(p,labels){
+    var cs=cycles(p).filter(function(c){ return c.length>1; });
+    if(!cs.length) return "e";
+    return cs.map(function(c){ return "("+c.map(function(i){ return labels?labels[i]:(i+1); }).join(" ")+")"; }).join("");
+  }
+  function cycleType(p){
+    var L=cycles(p).map(function(c){ return c.length; }).sort(function(a,b){ return b-a; });
+    return L.join(" + ");
+  }
+  function permOrder(p){
+    return cycles(p).map(function(c){ return c.length; }).reduce(lcm,1);
+  }
+  function signOf(p){ return inversions(p)%2===0 ? 1 : -1; }
+  function mulPerm(a,b){ // (a after b): i -> a(b(i))
+    return b.map(function(x,i){ return a[b[i]]; });
+  }
+
+  /* ================= wiring diagram ================= */
+  function drawWire(svg, p, labels){
+    var n=p.length, W=420, H=svg===document.getElementById("lamWire")?130:150;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var m=30, gap=n>1?(W-2*m)/(n-1):0, yT=38, yB=H-38, s="";
+    function x(i){ return m+i*gap; }
+    // crossing dots first, so strands sit on top
+    var i,j;
+    for(i=0;i<n;i++) for(j=i+1;j<n;j++){
+      if(p[i]>p[j]){
+        var t=(x(i)+x(j)+x(p[i])+x(p[j]))/4, u=(yT+yB)/2;
+        s+='<circle cx="'+t.toFixed(1)+'" cy="'+u.toFixed(1)+'" r="2" fill="var(--ink-soft)" opacity="0.28"/>';
+      }
+    }
+    for(i=0;i<n;i++){
+      var x1=x(i), x2=x(p[i]), mid=(yT+yB)/2;
+      s+='<path d="M'+x1.toFixed(1)+','+yT+' C'+x1.toFixed(1)+','+mid+' '+x2.toFixed(1)+','+mid+' '+x2.toFixed(1)+','+yB+'" '+
+         'fill="none" stroke="'+col(i)+'" stroke-width="2.6" stroke-linecap="round" opacity="0.95"/>';
+    }
+    for(i=0;i<n;i++){
+      var lab = labels?labels[i]:(i+1);
+      s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+yT+'" r="11" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.2"/>';
+      s+='<text x="'+x(i).toFixed(1)+'" y="'+yT+'" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="12" fill="var(--ink)">'+lab+'</text>';
+      s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+yB+'" r="11" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.2"/>';
+      s+='<text x="'+x(i).toFixed(1)+'" y="'+yB+'" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="12" fill="var(--ink)">'+lab+'</text>';
+    }
+    svg.innerHTML=s;
+  }
+
+  /* ================= cycle digraph ================= */
+  function drawDigraph(svg,p){
+    var cs=cycles(p), W=420, H=150, s="";
+    s+='<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">'+
+       '<path d="M0,1 L9,5 L0,9 z" fill="var(--ink-soft)"/></marker></defs>';
+    var slot=W/cs.length, ci;
+    for(ci=0;ci<cs.length;ci++){
+      var c=cs[ci], cx=slot*(ci+0.5), cy=H/2;
+      var R = c.length===1?0:Math.min(slot*0.33, 42);
+      if(c.length===1){
+        s+='<circle cx="'+cx+'" cy="'+cy+'" r="15" fill="'+col(c[0],80)+'" stroke="var(--ink-soft)" stroke-width="1.2"/>';
+        s+='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="13" fill="#15181d">'+(c[0]+1)+'</text>';
+        s+='<path d="M'+(cx+15)+','+(cy-6)+' a 12 12 0 1 1 0,12" fill="none" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ah)"/>';
+        continue;
+      }
+      var pts=c.map(function(_,k){
+        var a=(-90+k*360/c.length)*Math.PI/180;
+        return [cx+R*Math.cos(a), cy+R*Math.sin(a)];
+      });
+      for(var k=0;k<c.length;k++){
+        var A=pts[k], B=pts[(k+1)%c.length];
+        var dx=B[0]-A[0], dy=B[1]-A[1], L=Math.hypot(dx,dy)||1;
+        var ax=A[0]+dx/L*15, ay=A[1]+dy/L*15, bx=B[0]-dx/L*17, by=B[1]-dy/L*17;
+        s+='<line x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+
+           '" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#ah)"/>';
+      }
+      for(k=0;k<c.length;k++){
+        s+='<circle cx="'+pts[k][0].toFixed(1)+'" cy="'+pts[k][1].toFixed(1)+'" r="14" fill="'+col(c[k],80)+'" stroke="var(--ink-soft)" stroke-width="1.2"/>';
+        s+='<text x="'+pts[k][0].toFixed(1)+'" y="'+pts[k][1].toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, DejaVu Sans Mono, Liberation Mono, Menlo, Consolas, monospace" font-size="13" fill="#15181d">'+(c[k]+1)+'</text>';
+      }
+    }
+    svg.innerHTML=s;
+  }
+
+  /* ================= card 1 ================= */
+  var p = [1,2,0,4,3], pick=-1;
+
+  function renderSlots(){
+    var h="",i;
+    for(i=0;i<p.length;i++){
+      h+='<div class="slotwrap"><span class="idx">'+(i+1)+'→</span>'+
+         '<button class="slot" data-i="'+i+'" aria-pressed="'+(pick===i)+'" '+
+         'style="color:'+col(i,38)+'">'+(p[i]+1)+'</button></div>';
+    }
+    var el=document.getElementById("slots");
+    el.innerHTML=h;
+    el.querySelectorAll(".slot").forEach(function(b){
+      b.addEventListener("click",function(){
+        var i=+b.dataset.i;
+        if(pick<0){ pick=i; }
+        else if(pick===i){ pick=-1; }
+        else{ var t=p[pick]; p[pick]=p[i]; p[i]=t; pick=-1; }
+        renderCard1();
+      });
+    });
+  }
+
+  function renderCard1(){
+    renderSlots();
+    drawWire(document.getElementById("wire"), p);
+    drawDigraph(document.getElementById("digraph"), p);
+    var inv=inversions(p), sg=signOf(p), ord=permOrder(p);
+    document.getElementById("rOne").textContent = p.map(function(x){return x+1;}).join(" ");
+    document.getElementById("rCyc").textContent = cycleText(p);
+    document.getElementById("rType").textContent = cycleType(p)+"  (adds to "+p.length+")";
+    document.getElementById("rOrd").textContent = ord + "  = lcm of the cycle lengths";
+    document.getElementById("rInv").textContent = inv;
+    document.getElementById("rSign").innerHTML = sg===1
+      ? '<span class="badge e">even, +1</span>' : '<span class="badge o">odd, −1</span>';
+
+    var h="", q=identity(p.length), i;
+    for(i=1;i<=ord;i++){
+      q=mulPerm(p,q);
+      h+='<span class="pow'+(i===ord?' last':'')+'">σ'+(i===1?"":sup(i))+' = '+
+         (i===ord?"e":q.map(function(x){return x+1;}).join("")) +'</span>';
+    }
+    document.getElementById("powers").innerHTML=h;
+
+    var nc=cycles(p).length;
+    document.getElementById("signnote").innerHTML =
+      "Two ways to get the sign, and they always agree: <b>"+inv+" crossings</b>, and <b>"+p.length+
+      " − "+nc+" = "+(p.length-nc)+" transpositions</b> needed to undo it. Both are "+
+      (sg===1?"even":"odd")+". The number of transpositions is not unique, but its parity is.";
+
+    document.getElementById("swapnote").textContent = pick>=0
+      ? "Now click another box to swap it with the one at position "+(pick+1)+"."
+      : "Each crossing of two strands is one inversion. Click two boxes to swap them.";
+  }
+  function sup(k){ return String(k).split("").map(function(d){ return "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]; }).join(""); }
+
+  document.getElementById("nSel").addEventListener("change",function(e){
+    var n=+e.target.value; p=identity(n); pick=-1; renderCard1(); });
+  document.getElementById("btnRand").addEventListener("click",function(){
+    var i,j,t; for(i=p.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=p[i];p[i]=p[j];p[j]=t; }
+    pick=-1; renderCard1(); });
+  document.getElementById("btnCycle").addEventListener("click",function(){
+    p=p.map(function(_,i){ return (i+1)%p.length; }); pick=-1; renderCard1(); });
+  document.getElementById("btnId").addEventListener("click",function(){
+    p=identity(p.length); pick=-1; renderCard1(); });
+
+  /* ================= card 2: the 15-puzzle ================= */
+  // state[cell] = tile number, 0 is the blank. cells 0..15 read row by row.
+  var st=[], moves=0, hist=[];
+  function solvedState(){ var a=[],i; for(i=1;i<=15;i++)a.push(i); a.push(0); return a; }
+  function blankCell(){ return st.indexOf(0); }
+  function goalPos(tile){ return tile===0 ? 15 : tile-1; }
+  function arrangementSign(){
+    var sigma = st.map(function(tile){ return goalPos(tile); });
+    return signOf(sigma);
+  }
+  function blankDist(){
+    var b=blankCell(), r=Math.floor(b/4), c=b%4;
+    return Math.abs(r-3)+Math.abs(c-3);
+  }
+  function invariant(){ return arrangementSign() * (blankDist()%2===0 ? 1 : -1); }
+
+  function renderBoard(){
+    var b=document.getElementById("board"), h="", i, bc=blankCell();
+    for(i=0;i<16;i++){
+      var adj = Math.abs(Math.floor(i/4)-Math.floor(bc/4)) + Math.abs(i%4-bc%4) === 1;
+      h+='<button class="tile'+(st[i]===0?" blank":"")+(adj?" movable":"")+'" data-c="'+i+'"'+
+         (st[i]===0?' disabled aria-label="the gap"':'')+'>'+(st[i]||"")+'</button>';
+    }
+    b.innerHTML=h;
+    b.querySelectorAll(".tile").forEach(function(t){
+      t.addEventListener("click",function(){
+        var c=+t.dataset.c, bc=blankCell();
+        if(Math.abs(Math.floor(c/4)-Math.floor(bc/4))+Math.abs(c%4-bc%4)!==1) return;
+        st[bc]=st[c]; st[c]=0; moves++;
+        hist.push(invariant()); if(hist.length>14) hist=hist.slice(-14);
+        renderPuzzle();
+      });
+    });
+  }
+  function renderPuzzle(){
+    renderBoard();
+    var inv=invariant(), ok=inv===1;
+    var box=document.getElementById("invbox");
+    box.className="invbox "+(ok?"ok":"no");
+    document.getElementById("invHead").textContent = ok
+      ? "This position can be solved." : "This position can never be solved.";
+    document.getElementById("invBody").innerHTML = ok
+      ? "The invariant is +1, the same as the solved board. Some sequence of slides gets you there."
+      : "The invariant is −1 and the solved board has +1. No sequence of legal slides can change it, so no sequence of slides can get you home. This is Loyd’s trick.";
+    document.getElementById("pSign").innerHTML = arrangementSign()===1
+      ? '<span class="badge e">even, +1</span>' : '<span class="badge o">odd, −1</span>';
+    document.getElementById("pDist").textContent = blankDist()+(blankDist()%2===0?"  (even)":"  (odd)");
+    document.getElementById("pInv").innerHTML = (inv===1?'+1':'−1')+
+      "   ← sign × (−1)<sup>distance</sup>";
+    document.getElementById("moves").textContent = moves+(moves===1?" move":" moves");
+    document.getElementById("hist").innerHTML = hist.length
+      ? hist.map(function(v){ return '<span class="hbit">'+(v===1?"+1":"−1")+'</span>'; }).join("")
+      : '<span class="hbit">no moves yet</span>';
+  }
+  function setPuzzle(a){ st=a.slice(); moves=0; hist=[]; renderPuzzle(); }
+
+  document.getElementById("btnSolved").addEventListener("click",function(){ setPuzzle(solvedState()); });
+  document.getElementById("btnLoyd").addEventListener("click",function(){
+    var a=solvedState(); var t=a[13]; a[13]=a[14]; a[14]=t; setPuzzle(a); });
+  document.getElementById("btnScramble").addEventListener("click",function(){
+    var a=solvedState(), k, bc=15;
+    for(k=0;k<200;k++){
+      var r=Math.floor(bc/4), c=bc%4, opts=[];
+      if(r>0)opts.push(bc-4); if(r<3)opts.push(bc+4);
+      if(c>0)opts.push(bc-1); if(c<3)opts.push(bc+1);
+      var pickc=opts[Math.floor(Math.random()*opts.length)];
+      a[bc]=a[pickc]; a[pickc]=0; bc=pickc;
+    }
+    setPuzzle(a); });
+  document.getElementById("btnAny").addEventListener("click",function(){
+    var a=solvedState(), i,j,t;
+    for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i];a[i]=a[j];a[j]=t; }
+    setPuzzle(a); });
+
+  /* ================= card 3: Cayley's theorem ================= */
+  var SUPS=["","","²","³"];
+  function mkGroup(name, els, mul){
+    var n=els.length, table=[],i,j;
+    for(i=0;i<n;i++){ table.push([]); for(j=0;j<n;j++) table[i].push(mul(i,j)); }
+    return {name:name, els:els, table:table, n:n};
+  }
+  var GROUPS=[
+    mkGroup("Z₄ under +", ["0","1","2","3"], function(i,j){ return (i+j)%4; }),
+    mkGroup("the rectangle group", ["e","h","v","hv"], function(i,j){
+      var a=[i>>1,i&1], b=[j>>1,j&1]; return (((a[0]+b[0])%2)<<1) | ((a[1]+b[1])%2); }),
+    mkGroup("Z₆ under +", ["0","1","2","3","4","5"], function(i,j){ return (i+j)%6; }),
+    (function(){
+      var v=[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[2,1,0],[1,0,2]];
+      var nm=["e","(123)","(132)","(23)","(13)","(12)"];
+      function key(t){ for(var i=0;i<v.length;i++) if(v[i].join()===t.join()) return i; }
+      return mkGroup("S₃", nm, function(i,j){
+        var a=v[i], b=v[j]; return key([a[b[0]],a[b[1]],a[b[2]]]); });
+    })(),
+    (function(){
+      var v=[],i; for(i=0;i<4;i++)v.push([1,i]); for(i=0;i<4;i++)v.push([-1,i]);
+      var nm=v.map(function(g){ return g[0]===1?(g[1]===0?"e":"r"+SUPS[g[1]]):(g[1]===0?"f":"r"+SUPS[g[1]]+"f"); });
+      function key(t){ for(var i=0;i<v.length;i++) if(v[i][0]===t[0]&&v[i][1]===t[1]) return i; }
+      return mkGroup("D₄, the square", nm, function(i,j){
+        var a=v[i], b=v[j]; return key([a[0]*b[0], ((a[0]*b[1]+a[1])%4+4)%4]); });
+    })()
+  ];
+  var G=GROUPS[0], selRow=1;
+
+  function lambda(g){ // the row of g, as a permutation of positions
+    return G.table[g].slice();
+  }
+  function renderCayley(){
+    var t=document.getElementById("cay"), h, i, j;
+    h='<thead><tr><th class="corner">g \\ x</th>';
+    for(j=0;j<G.n;j++) h+='<th>'+G.els[j]+'</th>';
+    h+='</tr></thead><tbody>';
+    for(i=0;i<G.n;i++){
+      h+='<tr'+(i===selRow?' class="sel"':'')+' data-i="'+i+'"><th class="rowhead" data-i="'+i+'">'+G.els[i]+'</th>';
+      for(j=0;j<G.n;j++){
+        var q=G.table[i][j];
+        h+='<td><div style="background:'+col(q,80)+'">'+G.els[q]+'</div></td>';
+      }
+      h+='</tr>';
+    }
+    t.innerHTML=h+'</tbody>';
+    t.querySelectorAll(".rowhead").forEach(function(th){
+      th.addEventListener("click",function(){ selRow=+th.dataset.i; renderCard3(); });
+    });
+  }
+  function renderCard3(){
+    renderCayley();
+    var lam=lambda(selRow);
+    drawWire(document.getElementById("lamWire"), lam, G.els.map(function(_,i){ return i+1; }));
+    document.getElementById("lamTitle").textContent="The row of "+G.els[selRow]+", as a permutation";
+    document.getElementById("lamG").textContent=G.els[selRow];
+    document.getElementById("lamNum").textContent = G.els.map(function(e,i){ return (i+1)+"="+e; }).join("  ");
+    document.getElementById("lamPerm").textContent = lam.map(function(x){ return x+1; }).join(" ");
+    document.getElementById("lamCyc").textContent = cycleText(lam);
+    document.getElementById("lamSign").innerHTML = signOf(lam)===1
+      ? '<span class="badge e">even</span>' : '<span class="badge o">odd</span>';
+    var h="",i;
+    for(i=0;i<G.n;i++){
+      var l=lambda(i);
+      h+='<div><span class="g">λ<sub>'+G.els[i]+'</sub></span><span>'+cycleText(l)+'</span></div>';
+    }
+    document.getElementById("lamAll").innerHTML=h;
+    document.getElementById("cayNote").innerHTML =
+      "These <b>"+G.n+"</b> permutations of "+G.n+" things are closed under composition, so they form a subgroup of S"+
+      sub(G.n)+" — and the map λ sending each element to its own row is an isomorphism onto it. "+
+      "So "+G.name+" <b>is</b> a group of shuffles. It always works, for every finite group, and that is Cayley’s theorem.";
+  }
+  function sub(n){ return String(n).split("").map(function(d){ return "₀₁₂₃₄₅₆₇₈₉"[+d]; }).join(""); }
+
+  document.getElementById("gSel").innerHTML=GROUPS.map(function(g,i){
+    return '<option value="'+i+'">'+g.name+'</option>'; }).join("");
+  document.getElementById("gSel").addEventListener("change",function(e){
+    G=GROUPS[+e.target.value]; selRow=Math.min(1,G.n-1); renderCard3(); });
+
+  /* ================= boot ================= */
+  renderCard1();
+  setPuzzle(solvedState());
+  renderCard3();
+})();
+</script>
+</body>
+</html>

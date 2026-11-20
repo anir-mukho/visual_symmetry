@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A First Course in Group Theory</title>
+<style>
+/* Landing page for the four demos. Slate paper, indigo accent, one card per page.
+   Self-contained: no fonts, scripts or images from anywhere. */
+:root{
+  --paper:#f4f5f3; --panel:#ffffff; --ink:#191c21; --ink-soft:#5a6069;
+  --rule:#d8dbd6; --rule-soft:#e8eae6;
+  --accent:#3a4fa8; --accent-soft:#e7ebf8;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --accent:#93a8ef; --accent-soft:#242c45; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --panel:#1d2127; --ink:#eceef0; --ink-soft:#9aa2ac;
+  --rule:#343a42; --rule-soft:#262b32;
+  --accent:#93a8ef; --accent-soft:#242c45; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:system-ui, Segoe UI, Roboto, Liberation Sans, DejaVu Sans, Helvetica, Arial, sans-serif;
+  font-size:16px;line-height:1.55;padding:40px 20px 72px;
+}
+.wrap{max-width:880px;margin:0 auto}
+h1{
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;
+  font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 10px;font-weight:600;text-wrap:balance;
+}
+.lede{margin:0 0 6px;color:var(--ink-soft);max-width:62ch}
+h2{
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;
+  font-size:20px;margin:36px 0 14px;font-weight:600;
+}
+a.card{
+  display:flex;gap:16px;align-items:flex-start;
+  background:var(--panel);border:1px solid var(--rule);border-radius:11px;
+  padding:16px 18px;margin-bottom:12px;text-decoration:none;color:inherit;
+  transition:border-color .15s, transform .15s;
+}
+a.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.glyph{flex:0 0 56px;height:56px;border-radius:9px;background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center}
+.glyph svg{display:block}
+.body{flex:1;min-width:0}
+.body .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.body h3{
+  font-family:Georgia, Liberation Serif, DejaVu Serif, Times New Roman, serif;
+  margin:0;font-size:19px;font-weight:600;
+}
+.tag{
+  font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:3px 10px;
+}
+.body p{margin:5px 0 0;color:var(--ink-soft);font-size:15px}
+.foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule);
+  color:var(--ink-soft);font-size:14px}
+.foot a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>A first course in group theory</h1>
+  <p class="lede">Four lectures on symmetry, for undergraduates meeting groups for the first time. Everything below runs in the browser — nothing to install, and once a page has loaded it needs no connection.</p>
+
+  <h2>Start here</h2>
+
+  <a class="card" href="lecture-1-opening.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="2" y="2" width="14" height="14" fill="#3a4fa8" opacity=".85"/>
+      <rect x="18" y="2" width="14" height="14" fill="#3a4fa8" opacity=".45"/>
+      <rect x="2" y="18" width="14" height="14" fill="#3a4fa8" opacity=".45"/>
+      <rect x="18" y="18" width="14" height="14" fill="#3a4fa8" opacity=".85"/>
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Seventeen Patterns</h3><span class="tag">opening slides</span></span>
+      <p>Brickwork, a tiled floor, woven cloth and a star tiling. Two of them have exactly the same symmetry despite looking nothing alike, and two look alike but do not. Arrow keys to advance, F for full screen.</p>
+    </span>
+  </a>
+
+  <a class="card" href="alhambra-pajaritas.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <path d="M17 17 C17 9 24 7 27 11 C24 14 21 15 17 17 Z" fill="#3a4fa8" opacity=".85"/>
+      <path d="M17 17 C10 21 10 28 15 29 C17 25 17 21 17 17 Z" fill="#3a4fa8" opacity=".6"/>
+      <path d="M17 17 C13 11 6 12 6 17 C10 18 14 18 17 17 Z" fill="#3a4fa8" opacity=".4"/>
+      <circle cx="17" cy="17" r="2" fill="#3a4fa8"/>
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Reading a Wall in the Alhambra</h3><span class="tag">worked example</span></span>
+      <p>A photograph of fourteenth-century tilework, and the symmetry group worked out from it in three steps: find the lattice, find the highest rotation, look for a mirror. The answer is p3 &mdash; and the six-pointed stars are not six-fold centres.</p>
+    </span>
+  </a>
+
+  <h2>One demo per lecture</h2>
+
+  <a class="card" href="demo-1-symmetry-lab.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <polygon points="17,3 31,17 17,31 3,17" fill="none" stroke="#3a4fa8" stroke-width="2.4"/>
+      <circle cx="17" cy="3" r="3" fill="#3a4fa8"/>
+      <path d="M26 7 a 13 13 0 0 1 3 8" fill="none" stroke="#3a4fa8" stroke-width="2" />
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Symmetry Lab</h3><span class="tag">lecture 1</span></span>
+      <p>Turn and flip a polygon and watch where the corners go. Compare <i>rf</i> with <i>fr</i> side by side, and build the Cayley table by exploring.</p>
+    </span>
+  </a>
+
+  <a class="card" href="demo-2-isomorphism-detective.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="2" y="6" width="13" height="22" rx="2" fill="#3a4fa8" opacity=".75"/>
+      <rect x="19" y="6" width="13" height="22" rx="2" fill="#3a4fa8" opacity=".35"/>
+      <path d="M15 17 h4" stroke="#3a4fa8" stroke-width="2.4"/>
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Isomorphism Detective</h3><span class="tag">lecture 2</span></span>
+      <p>Two Cayley tables, coloured so they match exactly when your dictionary is an isomorphism. Hunt for one — or read off the invariant that proves none exists.</p>
+    </span>
+  </a>
+
+  <a class="card" href="demo-3-permutation-workshop.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <path d="M6 5 C6 17 28 17 28 29" fill="none" stroke="#3a4fa8" stroke-width="2.4"/>
+      <path d="M17 5 C17 17 6 17 6 29" fill="none" stroke="#3a4fa8" stroke-width="2.4" opacity=".6"/>
+      <path d="M28 5 C28 17 17 17 17 29" fill="none" stroke="#3a4fa8" stroke-width="2.4" opacity=".35"/>
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Permutation Workshop</h3><span class="tag">lecture 3</span></span>
+      <p>Shuffles drawn as strands, where the crossings are what you count. Then the 15-puzzle, with the invariant that makes Sam Loyd's position impossible sitting in plain sight.</p>
+    </span>
+  </a>
+
+  <a class="card" href="demo-4-cosets-and-orbits.html">
+    <span class="glyph"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <path d="M17 3 L29 10 L29 24 L17 31 L5 24 L5 10 Z" fill="none" stroke="#3a4fa8" stroke-width="2.2"/>
+      <path d="M5 10 L17 17 L29 10 M17 17 L17 31" fill="none" stroke="#3a4fa8" stroke-width="2.2" opacity=".55"/>
+    </svg></span>
+    <span class="body">
+      <span class="top"><h3>Cosets and Orbits</h3><span class="tag">lecture 4</span></span>
+      <p>A subgroup as one cluster and its cosets as identical copies, so Lagrange's theorem becomes counting. Then a cube you can turn, giving 6×4 = 8×3 = 12×2 = 24.</p>
+    </span>
+  </a>
+
+  <p class="foot">Drawn from scratch — the patterns, diagrams and tables on these pages are generated by the pages themselves, so there are no images, fonts or scripts loaded from anywhere. Save a page and it still works offline.<br>
+  Beyond these, <a href="https://nathancarter.github.io/group-explorer">Group Explorer</a> covers every group up to order 20, and Nathan Carter's <i>Visual Group Theory</i> is the matching book.</p>
+
+</div>
+</body>
+</html>
